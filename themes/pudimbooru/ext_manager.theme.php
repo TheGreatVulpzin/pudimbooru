@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Shimmie2;
 
-class pudimbooruExtManagerTheme extends ExtManagerTheme
+class PudimbooruExtManagerTheme extends ExtManagerTheme
 {
     public function display_table(array $extensions): void
     {

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Shimmie2;
 
+require_once __DIR__ . '/locale.php';
+
 use MicroHTML\HTMLElement;
 
 use function MicroHTML\{INPUT};
 
-class pudimbooruViewPostTheme extends ViewPostTheme
+class PudimbooruViewPostTheme extends ViewPostTheme
 {
     /**
      * @param HTMLElement[] $editor_parts
@@ -17,8 +19,8 @@ class pudimbooruViewPostTheme extends ViewPostTheme
     public function display_page(Post $image, array $editor_parts, array $sidebar_parts): void
     {
         Ctx::$page->set_heading($image->get_tag_list());
-        Ctx::$page->add_block(new Block("Search", $this->build_navigation($image), "left", 0));
-        Ctx::$page->add_block(new Block("Information", $this->build_stats($image), "left", 15));
+        Ctx::$page->add_block(new Block("Buscar", $this->build_navigation($image), "left", 0));
+        Ctx::$page->add_block(new Block("Informações", $this->build_stats($image), "left", 15));
         Ctx::$page->add_block(new Block(null, $this->build_info($image, $editor_parts), "main", 15));
     }
 
@@ -36,7 +38,7 @@ class pudimbooruViewPostTheme extends ViewPostTheme
                 ]),
                 INPUT([
                     "type" => 'submit',
-                    "value" => 'Go',
+                    "value" => 'Ir',
                     "style" => 'width:20%'
                 ]),
             ]

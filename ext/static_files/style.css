@@ -1,17 +1,22 @@
 :root {
-	--added-background: lightgreen;
-	--removed-background: lightcoral;
+	--added-background: #C8E6C0;
+	--removed-background: #F0B8B0;
 
-	--flash-color: #882;
-	--flash-border: #660;
-	--blink-base-color: #FF70;
-	--blink-blink-color: #FF7F;
+	--flash-color: #FFF3D6;
+	--flash-border: #E8C98A;
+	--blink-base-color: #FFF3D680;
+	--blink-blink-color: #F5D4A0CC;
 }
 
 @media (prefers-color-scheme: dark) {
 	:root {
-		--added-background: green;
-		--removed-background: coral;
+		--added-background: #3D5A38;
+		--removed-background: #6B4038;
+
+		--flash-color: #3A3028;
+		--flash-border: #5C4A3A;
+		--blink-base-color: #3A302880;
+		--blink-blink-color: #5C4A3ACC;
 	}
 }
 
@@ -55,7 +60,7 @@ H3[class~="shm-toggler"] {
 }
 
 #flash {
-    color: #444;
+    color: inherit;
     background-color: var(--flash-color);
     margin-bottom: 1rem;
     border-radius: var(--border-radius);

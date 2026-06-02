@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Shimmie2;
 
+require_once __DIR__ . '/locale.php';
+
 use function MicroHTML\{A, ARTICLE, BODY, DIV, FOOTER, H1, HEADER, IMG, LI, NAV, UL, emptyHTML};
 use function MicroHTML\{H3, SECTION};
 
@@ -19,7 +21,7 @@ use MicroHTML\HTMLElement;
  *              bar and title to the top of every page.
  */
 
-class pudimbooruPage extends Page
+class PudimbooruPage extends Page
 {
     protected function body_html(): HTMLElement
     {
@@ -56,8 +58,8 @@ class pudimbooruPage extends Page
             $subheading = DIV(["id" => "subtitle"], $this->subheading);
         }
 
-        $site_name = Ctx::$config->get(SetupConfig::TITLE); // bzchan: change from normal default to get title for top of page
-        $main_page = Ctx::$config->get(SetupConfig::MAIN_PAGE); // bzchan: change from normal default to get main page for top of page
+        $site_name = Ctx::$config->get(SetupConfig::TITLE);
+        $main_page = Ctx::$config->get(SetupConfig::MAIN_PAGE);
 
         $custom_links = emptyHTML();
         foreach ($nav_links as $nav_link) {
@@ -103,6 +105,9 @@ class pudimbooruPage extends Page
         $html = SECTION(['id' => $block->id]);
         if (!empty($block->header)) {
             $header = ($block->header === "Posts") ? "&nbsp;" : $block->header;
+            if (is_string($header) && $header !== "&nbsp;") {
+                $header = PudimbooruLocale::nav($header);
+            }
             $html->appendChild(H3(["data-toggle-sel" => "#{$block->id}", "class" => $hidable ? "shm-toggler" : ""], $header));
         }
         $html->appendChild(DIV(['class' => "blockbody"], $block->body));
@@ -111,6 +116,9 @@ class pudimbooruPage extends Page
 
     private function navlinks(Url $link, HTMLElement|string $desc, bool $active): HTMLElement
     {
+        if (is_string($desc)) {
+            $desc = PudimbooruLocale::nav($desc);
+        }
         return A([
             "class" => $active ? "current-page" : "tab",
             "href" => $link,

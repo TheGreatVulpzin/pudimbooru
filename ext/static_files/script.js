@@ -14,8 +14,26 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-    /** time-ago dates **/
+    /** time-ago dates (pt-BR) **/
     $.timeago.settings.cutoff = 365 * 24 * 60 * 60 * 1000; // Display original dates older than 1 year
+    $.timeago.settings.strings = {
+        prefixAgo: "há",
+        prefixFromNow: "daqui a",
+        suffixAgo: null,
+        suffixFromNow: null,
+        seconds: "menos de um minuto",
+        minute: "cerca de um minuto",
+        minutes: "%d minutos",
+        hour: "cerca de uma hora",
+        hours: "cerca de %d horas",
+        day: "um dia",
+        days: "%d dias",
+        month: "cerca de um mês",
+        months: "%d meses",
+        year: "cerca de um ano",
+        years: "%d anos",
+        wordSeparator: " ",
+    };
     $("time").timeago();
 
     /** sidebar toggle **/

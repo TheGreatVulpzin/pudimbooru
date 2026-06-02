@@ -4,13 +4,15 @@ declare(strict_types=1);
 
 namespace Shimmie2;
 
+require_once __DIR__ . '/locale.php';
+
 use function MicroHTML\DIV;
 
 use MicroHTML\HTMLElement;
 
-use function MicroHTML\{INPUT,P};
+use function MicroHTML\{A, INPUT, P, SPAN, emptyHTML};
 
-class pudimbooruIndexTheme extends IndexTheme
+class PudimbooruIndexTheme extends IndexTheme
 {
     /**
      * @param Post[] $images
@@ -22,7 +24,7 @@ class pudimbooruIndexTheme extends IndexTheme
         $this->display_page_header($images);
 
         $nav = $this->build_navigation($this->page_number, $this->total_pages, $this->search_terms);
-        Ctx::$page->add_block(new Block("Search", $nav, "left", 0));
+        Ctx::$page->add_block(new Block("Buscar", $nav, "left", 0));
 
         if (count($images) > 0) {
             $this->display_page_images($images);
@@ -50,11 +52,41 @@ class pudimbooruIndexTheme extends IndexTheme
                 ]),
                 INPUT([
                     "type" => 'submit',
-                    "value" => 'Go',
+                    "value" => 'Ir',
                     "style" => 'width:20%'
                 ]),
             ]
         );
+    }
+
+    /**
+     * @param Post[] $images
+     */
+    protected function display_page_header(array $images): void
+    {
+        if (count($this->search_terms) === 0) {
+            $page_title = Ctx::$config->get(SetupConfig::TITLE);
+        } else {
+            $page_title = implode(' ', $this->search_terms);
+            if (count($images) > 0) {
+                Ctx::$page->set_subheading("Página {$this->page_number} / {$this->total_pages}");
+            }
+        }
+
+        Ctx::$page->set_title($page_title);
+    }
+
+    protected function display_none_found(): void
+    {
+        Ctx::$page->add_block(new Block(null, emptyHTML(
+            SPAN(
+                "Nenhum post corresponde à busca, ",
+                A(
+                    ["href" => Url::referer_or(make_link("post/list"))],
+                    "voltar"
+                )
+            )
+        )));
     }
 
     /**

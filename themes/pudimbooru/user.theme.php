@@ -4,37 +4,40 @@ declare(strict_types=1);
 
 namespace Shimmie2;
 
-use function MicroHTML\{A, INPUT, LABEL, SMALL, TABLE, TD, TR, joinHTML};
+require_once __DIR__ . '/locale.php';
+
+use function MicroHTML\{A, INPUT, LABEL, P, SMALL, TABLE, TBODY, TD, TFOOT, TH, TR, emptyHTML, joinHTML};
+use function MicroHTML\rawHTML;
 
 use MicroHTML\HTMLElement;
 
-class pudimbooruUserPageTheme extends UserPageTheme
+class PudimbooruUserPageTheme extends UserPageTheme
 {
     public function display_login_page(): void
     {
-        Ctx::$page->set_title("Login");
+        Ctx::$page->set_title("Entrar");
         Ctx::$page->set_layout("no-left");
         $html = SHM_SIMPLE_FORM(
             make_link("user_admin/login"),
             TABLE(
-                ["summary" => "Login Form"],
+                ["summary" => "Formulário de login"],
                 TR(
-                    TD(["width" => "70"], LABEL(["for" => "user"], "Name")),
+                    TD(["width" => "70"], LABEL(["for" => "user"], "Nome")),
                     TD(["width" => "70"], INPUT(["type" => "text", "name" => "user", "id" => "user"]))
                 ),
                 TR(
-                    TD(LABEL(["for" => "pass"], "Password")),
+                    TD(LABEL(["for" => "pass"], "Senha")),
                     TD(INPUT(["type" => "password", "name" => "pass", "id" => "pass"]))
                 ),
                 TR(
-                    TD(["colspan" => "2"], SHM_SUBMIT("Log In"))
+                    TD(["colspan" => "2"], SHM_SUBMIT("Entrar"))
                 )
             )
         );
         if (Ctx::$config->get(UserAccountsConfig::SIGNUP_ENABLED)) {
-            $html->appendChild(SMALL(A(["href" => make_link("user_admin/create")], "Create Account")));
+            $html->appendChild(SMALL(A(["href" => make_link("user_admin/create")], "Criar conta")));
         }
-        Ctx::$page->add_block(new Block("Login", $html, "main", 90));
+        Ctx::$page->add_block(new Block("Entrar", $html, "main", 90));
     }
 
     /**
@@ -60,15 +63,66 @@ class pudimbooruUserPageTheme extends UserPageTheme
             if (in_array($part["name"], $blocked)) {
                 continue;
             }
-            $html[] = A(["href" => $part["link"], "class" => "tab"], $part["name"]);
+            $name = is_string($part["name"]) ? PudimbooruLocale::nav($part["name"]) : $part["name"];
+            $html[] = A(["href" => $part["link"], "class" => "tab"], $name);
         }
-        Ctx::$page->add_block(new Block("User Links", joinHTML(" ", $html), "user", 90, is_content: false));
+        Ctx::$page->add_block(new Block("Links do usuário", joinHTML(" ", $html), "user", 90, is_content: false));
     }
 
     public function display_signup_page(): void
     {
         Ctx::$page->set_layout("no-left");
-        parent::display_signup_page();
+
+        $tac = Ctx::$config->get(UserAccountsConfig::LOGIN_TAC) ?? "";
+
+        if (Ctx::$config->get(UserAccountsConfig::LOGIN_TAC_BBCODE)) {
+            $tac = format_text($tac);
+        }
+
+        $email_required = (
+            Ctx::$config->get(UserAccountsConfig::USER_EMAIL_REQUIRED) &&
+            !Ctx::$user->can(UserAccountsPermission::CREATE_OTHER_USER)
+        );
+        $captcha = Captcha::get_html(UserAccountsPermission::SKIP_SIGNUP_CAPTCHA);
+
+        $form = SHM_SIMPLE_FORM(
+            make_link("user_admin/create"),
+            TABLE(
+                ["class" => "form"],
+                TBODY(
+                    TR(
+                        TH("Nome"),
+                        TD(INPUT(["type" => 'text', "name" => 'name', "required" => true]))
+                    ),
+                    TR(
+                        TH("Senha"),
+                        TD(INPUT(["type" => 'password', "name" => 'pass1', "required" => true]))
+                    ),
+                    TR(
+                        TH(rawHTML("Repetir&nbsp;senha")),
+                        TD(INPUT(["type" => 'password', "name" => 'pass2', "required" => true]))
+                    ),
+                    TR(
+                        TH($email_required ? "E-mail" : rawHTML("E-mail&nbsp;(opcional)")),
+                        TD(INPUT(["type" => 'email', "name" => 'email', "required" => $email_required]))
+                    ),
+                    $captcha ? TR(
+                        TD(["colspan" => "2"], $captcha)
+                    ) : null,
+                ),
+                TFOOT(
+                    TR(TD(["colspan" => "2"], INPUT(["type" => "submit", "value" => "Criar conta"])))
+                )
+            )
+        );
+
+        $html = emptyHTML(
+            $tac ? P($tac) : null,
+            $form
+        );
+
+        Ctx::$page->set_title("Criar conta");
+        Ctx::$page->add_block(new Block("Cadastro", $html));
     }
 
     /**

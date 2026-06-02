@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Shimmie2;
 
-class pudimbooruTagMapTheme extends TagMapTheme
+class PudimbooruTagMapTheme extends TagMapTheme
 {
     protected function display_nav(): void
     {

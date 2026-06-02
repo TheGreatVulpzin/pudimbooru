@@ -8,7 +8,7 @@ use function MicroHTML\{A,B,DIV,joinHTML};
 
 use MicroHTML\HTMLElement;
 
-class pudimbooruCommonElementsTheme extends CommonElementsTheme
+class PudimbooruCommonElementsTheme extends CommonElementsTheme
 {
     public function display_paginator(string $base, ?QueryArray $query, int $page_number, int $total_pages, bool $show_random = false): void
     {

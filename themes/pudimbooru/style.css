@@ -1,50 +1,68 @@
 :root {
 	color-scheme: light dark;
 
-	--page: #FFFFFF;
-	--text: black;
+	--page: #F9E1B7;
+	--text: #3D2E1F;
 
-	--danger-color: #000;
-	--danger-background: #FAA;
+	--danger-color: #3D2E1F;
+	--danger-background: #F5A8A8;
 
-	--link-first: #FF3333;
-	--link-default: #006FFA;
-	--link-hover: #33CFFF;
-	--link-header: black;
+	--link-first: #B84A1E;
+	--link-default: #7A5230;
+	--link-hover: #C45C26;
+	--link-header: #3D2E1F;
 
-	--header-selected: #EEEEFF;
-	--footer-fg: #555555;
-	--tag-count: #AAAAAA;
-	--comment-meta: gray;
+	--header-selected: #F5D4A0;
+	--footer-fg: #8A7355;
+	--tag-count: #8A7355;
+	--comment-meta: #8A7355;
 
-	--paginator-border: #EEEEEE;
-	--paginator-hover-bg: blue;
-	--paginator-hover-fg: white;
+	--paginator-border: #D4B896;
+	--paginator-hover-bg: #A67C3D;
+	--paginator-hover-fg: #FFFBF0;
 
-	--block-border: #AAAAAA;
+	--block-border: #D4B896;
 
-	--zebra-heading-fg: #171BB3;
-	--zebra-hover-bg: #FFD;
+	--zebra-heading-fg: #5C4033;
+	--zebra-hover-bg: #FFF3D6;
+	--zebra-border: #D4B896;
+
+	--code-background: #EDE0C8;
+	--flash-background: #FFF3D6;
+	--flash-border: #E8C98A;
 }
 
 @media (prefers-color-scheme: dark) {
 	:root {
-		--page: #1E1E2C;
-		--text: #E8E8EC;
+		--page: #1F1A14;
+		--text: #F5E6D3;
 
-		--danger-color: #E8E8EC;
-		--danger-background: #955;
+		--danger-color: #F5E6D3;
+		--danger-background: #7A4545;
 
-		--link-first: #FF5A5B;
-		--link-default: #009BE9;
+		--link-first: #E8956A;
+		--link-default: #D4A574;
+		--link-hover: #F0C090;
+		--link-header: #F5E6D3;
 
-		--header-selected: #2C2D3F;
+		--header-selected: #3D3228;
+		--footer-fg: #A89888;
+		--tag-count: #A89888;
+		--comment-meta: #A89888;
 
-		--paginator-hover-bg: #009BE9;
-		--paginator-hover-fg: white;
+		--paginator-border: #5C4A3A;
+		--paginator-hover-bg: #C9A227;
+		--paginator-hover-fg: #1F1A14;
 
-		--zebra-heading-fg: #E8E8EC;
-		--zebra-hover-bg: #2C2D3F;
+		--block-border: #5C4A3A;
+
+		--zebra-heading-fg: #E8D4B8;
+		--zebra-hover-bg: #3A3028;
+		--zebra-border: #5C4A3A;
+
+		--code-background: #2E261E;
+		--flash-background: #3A3028;
+		--flash-border: #5C4A3A;
 	}
 }
 
@@ -185,7 +203,7 @@ table.zebra th {
 table.zebra td {
 	margin: 0;
 	padding-right: 0.6rem;
-	border: 1px dotted #EEE;
+	border: 1px dotted var(--zebra-border);
 }
 
 table.zebra th {
@@ -237,7 +255,7 @@ FOOTER>DIV {
 }
 
 CODE {
-	background: #DEDEDE;
+	background: var(--code-background);
 	font-size: 0.9rem;
 }
 
@@ -500,8 +518,9 @@ ul.flat-list li a {
 }
 
 #flash {
-	background: #FDF5D9;
-	border: 1px solid #FCEEC1;
+	background: var(--flash-background);
+	border: 1px solid var(--flash-border);
+	color: var(--text);
 	margin: 1rem 0;
 	padding: 1rem;
 	text-align: center;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Shimmie2;
 
-class pudimbooruAdminPageTheme extends AdminPageTheme
+class PudimbooruAdminPageTheme extends AdminPageTheme
 {
     public function display_page(): void
     {

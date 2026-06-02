@@ -8,7 +8,7 @@ use function MicroHTML\{A, B, BR, P, SPAN, TABLE, TD, TR, emptyHTML, joinHTML};
 
 use MicroHTML\HTMLElement;
 
-class pudimbooruCommentListTheme extends CommentListTheme
+class PudimbooruCommentListTheme extends CommentListTheme
 {
     /**
      * @param array<array{0: Post, 1: Comment[]}> $images
@@ -16,7 +16,7 @@ class pudimbooruCommentListTheme extends CommentListTheme
     public function display_comment_list(array $images, int $page_number, int $total_pages, bool $can_post): void
     {
         Ctx::$page->set_layout("no-left");
-        Ctx::$page->set_title("Comments");
+        Ctx::$page->set_title("Comentários");
         $this->display_navigation([
             ($page_number <= 1) ? null : make_link('comment/list/'.($page_number - 1)),
             make_link(),
@@ -24,7 +24,6 @@ class pudimbooruCommentListTheme extends CommentListTheme
         ]);
         $this->display_paginator("comment/list", null, $page_number, $total_pages);
 
-        // parts for each image
         $position = 10;
 
         $comment_limit = Ctx::$config->get(CommentConfig::LIST_COUNT);
@@ -41,15 +40,15 @@ class pudimbooruCommentListTheme extends CommentListTheme
             $comment_html = SPAN(
                 ["class" => "comment-info"],
                 SPAN(
-                    B("Date"),
+                    B("Data"),
                     SHM_DATE($image->posted),
                 ),
                 SPAN(
-                    B("Uploader"),
+                    B("Enviado por"),
                     $image->get_owner()->name,
                 ),
                 RatingsInfo::is_enabled()
-                    ? SPAN(B("Rating"), Ratings::rating_to_human($image['rating']))
+                    ? SPAN(B("Classificação"), Ratings::rating_to_human($image['rating']))
                     : null,
                 BR(),
                 SPAN(
@@ -61,7 +60,7 @@ class pudimbooruCommentListTheme extends CommentListTheme
 
             $comment_count = count($comments);
             if ($comment_limit > 0 && $comment_count > $comment_limit) {
-                $comment_html->appendChild(P("showing $comment_limit of $comment_count comments"));
+                $comment_html->appendChild(P("mostrando $comment_limit de $comment_count comentários"));
                 $comments = array_slice($comments, negative_int($comment_limit));
             }
             foreach ($comments as $comment) {
@@ -98,7 +97,7 @@ class pudimbooruCommentListTheme extends CommentListTheme
 
         $h_userlink = A(["class" => "username", "href" => make_link("user/{$comment->owner->name}")], $comment->owner->name);
         $actions = emptyHTML(
-            Ctx::$user->can(IPBanPermission::VIEW_IP) ? emptyHTML(BR(), SHM_IP($comment->owner_ip, "Comment posted {$comment->posted}")) : null,
+            Ctx::$user->can(IPBanPermission::VIEW_IP) ? emptyHTML(BR(), SHM_IP($comment->owner_ip, "Comentário em {$comment->posted}")) : null,
             Ctx::$user->can(CommentPermission::DELETE_COMMENT) ? emptyHTML(" - ", $this->delete_link($comment->id, $comment->image_id, $comment->owner->name, $tfe->stripped)) : null,
             Ctx::$user->can(CommentPermission::EDIT_COMMENT) && Ctx::$user->id === $comment->owner_id ? emptyHTML(" - ", $this->edit_button($comment->id, $comment->image_id, $comment->comment)) : null,
         );
