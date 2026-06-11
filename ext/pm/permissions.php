@@ -7,14 +7,14 @@ namespace Shimmie2;
 final class PrivMsgPermission extends PermissionGroup
 {
     public const KEY = "pm";
-    public ?string $title = "Private Messages";
+    public ?string $title = "Mensagens Privadas";
 
-    #[PermissionMeta("Send PMs")]
+    #[PermissionMeta("Enviar PMs")]
     public const SEND_PM = "send_pm";
 
-    #[PermissionMeta("Read PMs")]
+    #[PermissionMeta("Ler PMs")]
     public const READ_PM = "read_pm";
 
-    #[PermissionMeta("Read other people's PMs")]
+    #[PermissionMeta("Ler PMs de outras pessoas")]
     public const VIEW_OTHER_PMS = "view_other_pms";
 }

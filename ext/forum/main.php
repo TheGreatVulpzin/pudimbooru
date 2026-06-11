@@ -234,8 +234,8 @@ final class Forum extends Extension
         $threads_rate = sprintf("%.1f", ($threads_count / $days_old));
         $posts_rate = sprintf("%.1f", ($posts_count / $days_old));
 
-        $event->add_part(emptyHTML("Forum threads: $threads_count, $threads_rate per day"));
-        $event->add_part(emptyHTML("Forum posts: $posts_count, $posts_rate per day"));
+        $event->add_part(emptyHTML("Threads do fórum feitos: $threads_count, $threads_rate por dia"));
+        $event->add_part(emptyHTML("Posts do fórum: $posts_count, $posts_rate por dia"));
     }
 
     #[EventListener]

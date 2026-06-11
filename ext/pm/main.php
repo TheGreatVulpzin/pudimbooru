@@ -190,7 +190,7 @@ final class PrivMsg extends Extension
         if (Ctx::$user->can(PrivMsgPermission::READ_PM)) {
             $count = $this->count_pms(Ctx::$user);
             $h_count = $count > 0 ? SPAN(["class" => 'unread'], "($count)") : "";
-            $event->add_link(emptyHTML("Private Messages", $h_count), make_link("user", fragment: "private-messages"), 10);
+            $event->add_link(emptyHTML("Mensagens Privadas", $h_count), make_link("user", fragment: "private-messages"), 10);
         }
     }
 

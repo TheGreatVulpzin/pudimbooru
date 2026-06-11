@@ -24,7 +24,7 @@ class PudimbooruIndexTheme extends IndexTheme
         $this->display_page_header($images);
 
         $nav = $this->build_navigation($this->page_number, $this->total_pages, $this->search_terms);
-        Ctx::$page->add_block(new Block("Buscar", $nav, "left", 0));
+        Ctx::$page->add_block(new Block(PudimbooruLocale::general_ui("Search"), $nav, "left", 0));
 
         if (count($images) > 0) {
             $this->display_page_images($images);
@@ -52,7 +52,7 @@ class PudimbooruIndexTheme extends IndexTheme
                 ]),
                 INPUT([
                     "type" => 'submit',
-                    "value" => 'Ir',
+                    "value" => PudimbooruLocale::general_ui("Go"),
                     "style" => 'width:20%'
                 ]),
             ]
@@ -69,7 +69,7 @@ class PudimbooruIndexTheme extends IndexTheme
         } else {
             $page_title = implode(' ', $this->search_terms);
             if (count($images) > 0) {
-                Ctx::$page->set_subheading("Página {$this->page_number} / {$this->total_pages}");
+                Ctx::$page->set_subheading(sprintf(PudimbooruLocale::translate("Page %d / %d"), $this->page_number, $this->total_pages));
             }
         }
 
@@ -80,10 +80,11 @@ class PudimbooruIndexTheme extends IndexTheme
     {
         Ctx::$page->add_block(new Block(null, emptyHTML(
             SPAN(
-                "Nenhum post corresponde à busca, ",
+                PudimbooruLocale::translate("No posts match search"),
+                ", ",
                 A(
                     ["href" => Url::referer_or(make_link("post/list"))],
-                    "voltar"
+                    PudimbooruLocale::general_ui("Back")
                 )
             )
         )));

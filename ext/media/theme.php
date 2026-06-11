@@ -13,25 +13,25 @@ class MediaTheme extends Themelet
     public function get_help_html(): HTMLElement
     {
         return emptyHTML(
-            P('Search for posts based on the type of media.'),
-            SHM_COMMAND_EXAMPLE('content=audio', 'Returns posts that contain audio, including videos and audio files.'),
-            SHM_COMMAND_EXAMPLE('content=video', 'Returns posts that contain video, including animated GIFs.'),
+            P('Pesquisando por posts baseados no tipo de mídia.'),
+            SHM_COMMAND_EXAMPLE('content=audio', 'Pesquisa por posts que contém aúdio, incluindo vídeos e arquivos de áudio.'),
+            SHM_COMMAND_EXAMPLE('content=video', 'Pesquisa por posts que contém video, incluindo GIFs animados.'),
             //
             BR(),
-            P("Searching by dimentions."),
-            SHM_COMMAND_EXAMPLE("size=640x480", "Returns posts exactly 640 pixels wide by 480 pixels high."),
-            SHM_COMMAND_EXAMPLE("size>1920x1080", "Returns posts with a width larger than 1920 and a height larger than 1080."),
-            SHM_COMMAND_EXAMPLE("width=1000", "Returns posts exactly 1000 pixels wide."),
-            SHM_COMMAND_EXAMPLE("height=1000", "Returns posts exactly 1000 pixels high."),
-            SHM_COMMAND_EXAMPLE("ratio=4:3", "Returns posts with an aspect ratio of 4:3."),
-            SHM_COMMAND_EXAMPLE("ratio>16:9", "Returns posts with an aspect ratio greater than 16:9."),
+            P("Pesquisando por dimensões."),
+            SHM_COMMAND_EXAMPLE("size=640x480", "Pesquisa por posts com exatamente 640 pixels de largura por 480 pixels de altura."),
+            SHM_COMMAND_EXAMPLE("size>1920x1080", "Pesquisa por posts com uma largura maior que 1920 e uma altura maior que 1080."),
+            SHM_COMMAND_EXAMPLE("width=1000", "Pesquisa por posts com exatamente 1000 pixels de largura."),
+            SHM_COMMAND_EXAMPLE("height=1000", "Pesquisa por posts com exatamente 1000 pixels de altura."),
+            SHM_COMMAND_EXAMPLE("ratio=4:3", "Pesquisa por posts com uma proporção de aspecto de 4:3."),
+            SHM_COMMAND_EXAMPLE("ratio>16:9", "Pesquisa por posts com uma proporção de aspecto maior que 16:9."),
             //
             BR(),
-            P("Searching posts by media length."),
-            P("Available suffixes are ms, s, m, h, d, and y. A number by itself will be interpreted as milliseconds. Searches using = are not likely to work unless time is specified down to the millisecond."),
-            SHM_COMMAND_EXAMPLE("length>=1h", "Returns posts that are longer than an hour."),
-            SHM_COMMAND_EXAMPLE("length<=10h15m", "Returns posts that are shorter than 10 hours and 15 minutes."),
-            SHM_COMMAND_EXAMPLE("length>=10000", "Returns posts that are longer than 10,000 milliseconds, or 10 seconds."),
+            P("Pesquisando posts por duração."),
+            P("Sufixos disponíveis são ms, s, m, h, d, e y. Um número por si só será interpretado como milissegundos. Buscas usando = não funcionarão a menos que o tempo seja especificado até o milissegundo."),
+            SHM_COMMAND_EXAMPLE("length>=1h", "Pesquise por posts que são mais longos que uma hora."),
+            SHM_COMMAND_EXAMPLE("length<=10h15m", "Pesquisa por posts que são mais curtos que 10 horas e 15 minutos."),
+            SHM_COMMAND_EXAMPLE("length>=10000", "Pesquisa por posts que são mais longos que 10.000 milissegundos, ou 10 segundos."),
         );
     }
 }

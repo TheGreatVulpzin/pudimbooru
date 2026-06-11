@@ -14,20 +14,20 @@ class ApprovalTheme extends Themelet
     public function get_help_html(): HTMLElement
     {
         $help_text = emptyHTML(
-            P("Search for posts that are approved/not approved."),
-            SHM_COMMAND_EXAMPLE("approved=yes", "Returns posts that have been approved."),
+            P("Pesquisar por posts que estão aprovados/não aprovados."),
+            SHM_COMMAND_EXAMPLE("approved=yes", "Pesquisa por posts que foram aprovados."),
         );
 
         if (Ctx::$user->can(ApprovalPermission::APPROVE_IMAGE)) {
             $help_text = emptyHTML(
                 $help_text,
-                SHM_COMMAND_EXAMPLE("approved=no", "Returns posts that have not been approved.")
+                SHM_COMMAND_EXAMPLE("approved=no", "Pesquisa por posts que não foram aprovados.")
             );
         } else {
             $help_text = emptyHTML(
                 $help_text,
-                SHM_COMMAND_EXAMPLE("approved=no", "Returns your own posts that have not been approved."),
-                SHM_COMMAND_EXAMPLE("approved=no user=username", "Returns your own unapproved posts (only works with your own username).")
+                SHM_COMMAND_EXAMPLE("approved=no", "Pesquisa por seus próprios posts que não foram aprovados."),
+                SHM_COMMAND_EXAMPLE("approved=no user=username", "Pesquisa por seus próprios posts não aprovados (só funciona com seu próprio nome de usuário).")
             );
         }
 

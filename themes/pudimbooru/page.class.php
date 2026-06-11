@@ -6,7 +6,7 @@ namespace Shimmie2;
 
 require_once __DIR__ . '/locale.php';
 
-use function MicroHTML\{A, ARTICLE, BODY, DIV, FOOTER, H1, HEADER, IMG, LI, NAV, UL, emptyHTML};
+use function MicroHTML\{A, ARTICLE, BODY, BR, DIV, FOOTER, H1, HEADER, IMG, LI, NAV, UL, emptyHTML, joinHTML};
 use function MicroHTML\{H3, SECTION};
 
 use MicroHTML\HTMLElement;
@@ -76,7 +76,7 @@ class PudimbooruPage extends Page
 
         $title_link = H1(
             ["id" => "site-title"],
-            IMG(["src" => "/favicon.ico", "alt" => "", "class" => "logo"]),
+            IMG(["src" => "/favicon.ico", "alt" => "", "class" => "logo", "width" => "32", "height" => "32"]),
             A(["href" => make_link($main_page)], $site_name)
         );
         $flash_html = $this->flash_html();
@@ -98,6 +98,19 @@ class PudimbooruPage extends Page
             ),
             FOOTER(DIV($footer_html))
         );
+    }
+
+    protected function footer_html(): HTMLElement
+    {
+        $contact_link = contact_link();
+        return joinHTML("", [
+            "Pudim(©) aos seus respectivos donos, rodando ",
+            A(["href" => "https://github.com/TheGreatVulpzin/pudimbooru", "title" => "Pudimbooru"], "Pudimbooru"),
+            ", baseado no ",
+            A(["href" => "https://github.com/shish/shimmie2/"], "Shimmie"),
+            ".",
+            $contact_link ? emptyHTML(BR(), A(["href" => $contact_link], PudimbooruLocale::translate("Contact"))) : ""
+        ]);
     }
 
     protected function block_html(Block $block, bool $hidable): HTMLElement

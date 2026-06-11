@@ -45,7 +45,7 @@ class PudimbooruUploadTheme extends UploadTheme
                     TD(["colspan" => "7"], $captcha)
                 ) : null,
                 TR(
-                    TD(["colspan" => "7"], INPUT(["id" => "uploadbutton", "type" => "submit", "value" => "Publicar"]))
+                    TD(["colspan" => "7"], INPUT(["id" => "uploadbutton", "type" => "submit", "value" => PudimbooruLocale::translate("Publish")]))
                 ),
             )
         );
@@ -53,10 +53,12 @@ class PudimbooruUploadTheme extends UploadTheme
             $form,
             SMALL(
                 "(",
-                $max_size > 0 ? "Limite por arquivo $max_kb" : null,
+                $max_size > 0 ? sprintf(PudimbooruLocale::translate("Limit per file %s"), $max_kb) : null,
                 $max_size > 0 && $max_total_size > 0 ? " / " : null,
-                $max_total_size > 0 ? "Limite total $max_total_kb" : null,
-                " / Total atual ",
+                $max_total_size > 0 ? sprintf(PudimbooruLocale::translate("Total limit %s"), $max_total_kb) : null,
+                " / ",
+                PudimbooruLocale::translate("Current total"),
+                " ",
                 SPAN(["id" => "upload_size_tracker"], "0KB"),
                 ")"
             ),
@@ -67,11 +69,11 @@ class PudimbooruUploadTheme extends UploadTheme
         );
 
         $page = Ctx::$page;
-        $page->set_title("Enviar");
+        $page->set_title(PudimbooruLocale::translate("Upload"));
         $this->display_navigation();
-        $page->add_block(new Block("Enviar", $html, "main", 20));
+        $page->add_block(new Block(PudimbooruLocale::translate("Upload"), $html, "main", 20));
         if ($tl_enabled) {
-            $page->add_block(new Block("Bookmarklets", $this->build_bookmarklets(), "left", 20));
+            $page->add_block(new Block(PudimbooruLocale::translate("Bookmarklets"), $this->build_bookmarklets(), "left", 20));
         }
     }
 
@@ -86,15 +88,15 @@ class PudimbooruUploadTheme extends UploadTheme
         $uhbe = send_event(new UploadHeaderBuildingEvent());
         foreach ($uhbe->get_parts() as $part) {
             $headers->appendChild(
-                TH("Específico do post $part")
+                TH(sprintf(PudimbooruLocale::translate("Post specific %s"), $part))
             );
         }
 
         $upload_list->appendChild(
             TR(
                 ["class" => "header"],
-                TH(["colspan" => 2], "Selecionar arquivo"),
-                TH($tl_enabled ? "ou URL" : null),
+                TH(["colspan" => 2], PudimbooruLocale::translate("Select file")),
+                TH($tl_enabled ? PudimbooruLocale::translate("or URL") : null),
                 $headers,
             )
         );

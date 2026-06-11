@@ -327,7 +327,7 @@ final class UserPage extends Extension
             $pass2 = $event->POST->req('pass2');
             if ($this->user_can_edit_user($user, $duser)) {
                 if ($pass1 !== $pass2) {
-                    throw new InvalidInput("Passwords don't match");
+                    throw new InvalidInput("Senhas não coincidem");
                 } else {
                     // FIXME: send_event()
                     $duser->set_password($pass1);
@@ -370,7 +370,7 @@ final class UserPage extends Extension
         if ($event->page_matches("user/{name}")) {
             $display_user = User::by_name($event->get_arg('name'));
             if ($display_user->id === Ctx::$config->get(UserAccountsConfig::ANON_ID)) {
-                throw new UserNotFound("No such user");
+                throw new UserNotFound("usuário não encontrado");
             }
             $e = send_event(new UserPageBuildingEvent($display_user));
             $this->display_stats($e);
@@ -385,9 +385,9 @@ final class UserPage extends Extension
         $duser = $event->display_user;
         $class = $duser->class;
 
-        $event->add_part(emptyHTML("Joined: ", SHM_DATE($duser->join_date)), 10);
+        $event->add_part(emptyHTML("Entrou: ", SHM_DATE($duser->join_date)), 10);
         if (Ctx::$user->name === $duser->name) {
-            $event->add_part(emptyHTML("Current IP: " . Network::get_real_ip()), 80);
+            $event->add_part(emptyHTML("IP Atual: " . Network::get_real_ip()), 80);
         }
         $event->add_part(emptyHTML("Class: {$class->name}"), 90);
 
@@ -398,12 +398,12 @@ final class UserPage extends Extension
             $event->add_part($av, 0);
         } elseif ($duser->id === Ctx::$user->id) {
             if (AvatarPostInfo::is_enabled() || AvatarGravatarInfo::is_enabled()) {
-                $part = emptyHTML(P("No avatar?"));
+                $part = emptyHTML(P("Sem avatar?"));
                 if (AvatarPostInfo::is_enabled()) {
                     $part->appendChild(P(
-                        "You can set any post as avatar by clicking \"Set Image As Avatar\" in ",
-                        "the Post Controls on any post, or by setting it manually in your ",
-                        A(["href" => make_link("user_config")], "user config")
+                        "Você pode colocar qualquer post como avatar clicando \"Definir como Avatar\" em ",
+                        "nos controles de posts em qualquer post, ou definindo manualmente nas suas ",
+                        A(["href" => make_link("user_config")], "configurações de usuário")
                     ));
                 }
                 if (AvatarGravatarInfo::is_enabled()) {
@@ -431,16 +431,16 @@ final class UserPage extends Extension
     private function validate_user_name(string $input): string
     {
         if (strlen($input) < 1) {
-            throw new InvalidInput("Username must be at least 1 character");
+            throw new InvalidInput("Username deve ser pelo menos 1 caractere");
         } elseif (!\Safe\preg_match('/^[a-zA-Z0-9-_]+$/', $input)) {
             throw new InvalidInput(
-                "Username contains invalid characters. Allowed characters are ".
-                "letters, numbers, dash, and underscore"
+                "Usuário contém caracteres inválidos. Caracteres permitidos são ".
+                "letras, números, hífen, e underline"
             );
         }
         try {
             User::by_name($input);
-            throw new InvalidInput("That username is already taken");
+            throw new InvalidInput("Este username já existe");
         } catch (UserNotFound $ex) {
             // user not found is good
         }

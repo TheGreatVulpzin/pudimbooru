@@ -133,11 +133,11 @@ class TagCategoriesTheme extends Themelet
     public function get_help_html(): HTMLElement
     {
         return emptyHTML(
-            P("Search for posts containing a certain number of tags with the specified tag category."),
-            SHM_COMMAND_EXAMPLE("person_tags=1", "Returns posts with exactly 1 tag with the tag category 'person'."),
-            SHM_COMMAND_EXAMPLE("cat_tags>0", "Returns posts with 1 or more tags with the tag category 'cat'."),
-            P("Can use <, <=, >, >=, or =."),
-            P("Category name is not case sensitive, category must exist for search to work.")
+            P("Pesquisar por posts contendo um certo número de tags com a categoria de tag especificada."),
+            SHM_COMMAND_EXAMPLE("characters_tags=1", "Pesquisa posts com exatamente 1 tag com a categoria de tag 'characters'."),
+            SHM_COMMAND_EXAMPLE("meta_tags>0", "Pesquisa posts com 1 ou mais tags com a categoria de tag 'meta'."),
+            P("Pode usar <, <=, >, >=, ou =."),
+            P("O nome da categoria não é sensível a maiúsculas/minúsculas, a categoria deve existir para que a pesquisa funcione.")
         );
     }
 }

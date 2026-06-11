@@ -6,6 +6,10 @@ namespace Shimmie2;
 
 use function MicroHTML\{A, BR, DIV, INPUT, LI, P, SPAN, TABLE, TBODY, TD, TEXTAREA, TFOOT, TH, THEAD, TR, UL, emptyHTML};
 
+if (!class_exists('PudimbooruLocale') && file_exists(__DIR__ . '/../../themes/pudimbooru/locale.php')) {
+    require_once __DIR__ . '/../../themes/pudimbooru/locale.php';
+}
+
 /**
  * @phpstan-type BlotterRow array{id:int,entry_date:string,entry_text:string,important:bool}
  */
@@ -22,12 +26,12 @@ class BlotterTheme extends Themelet
                 TR(
                     TD($entry['entry_date']),
                     TD($entry['entry_text']),
-                    TD($entry['important'] ? "Yes" : "No"),
+                    TD($entry['important'] ? PudimbooruLocale::translate("Yes") : PudimbooruLocale::translate("No")),
                     TD(
                         SHM_SIMPLE_FORM(
                             make_link("blotter/remove"),
                             INPUT(["type" => "hidden", "name" => "id", "value" => $entry['id']]),
-                            SHM_SUBMIT("Remove")
+                            SHM_SUBMIT(PudimbooruLocale::translate("Remove"))
                         )
                     )
                 )
@@ -38,10 +42,10 @@ class BlotterTheme extends Themelet
                 ["id" => "blotter_entries", "class" => "zebra"],
                 THEAD(
                     TR(
-                        TH("Date"),
-                        TH("Message"),
-                        TH("Important?"),
-                        TH("Action")
+                        TH(PudimbooruLocale::translate("Date")),
+                        TH(PudimbooruLocale::translate("Message")),
+                        TH(PudimbooruLocale::translate("Important?")),
+                        TH(PudimbooruLocale::translate("Action"))
                     )
                 ),
                 $tbody,
@@ -50,15 +54,15 @@ class BlotterTheme extends Themelet
                         make_link("blotter/add"),
                         TD(["colspan" => 2], TEXTAREA(["name" => "entry_text", "rows" => 2])),
                         TD(INPUT(["type" => "checkbox", "name" => "important"])),
-                        TD(SHM_SUBMIT("Add"))
+                        TD(SHM_SUBMIT(PudimbooruLocale::translate("Add")))
                     ))
                 )
             ),
         );
 
         $page = Ctx::$page;
-        $page->set_title("Blotter Editor");
-        $page->add_block(new Block("Blotter Editor", $html, "main", 10));
+        $page->set_title(PudimbooruLocale::translate("Blotter Editor"));
+        $page->add_block(new Block(PudimbooruLocale::translate("Blotter Editor"), $html, "main", 10));
         $this->display_navigation();
     }
 
@@ -112,10 +116,10 @@ class BlotterTheme extends Themelet
         }
 
         if (count($entries) === 0) {
-            $out_text = "No blotter entries yet.";
-            $in_text = "Empty.";
+            $out_text = PudimbooruLocale::translate("No blotter entries yet.");
+            $in_text = PudimbooruLocale::translate("Empty.");
         } else {
-            $out_text = "Blotter updated: " . date("m/d/y", \Safe\strtotime($entries[0]['entry_date']));
+            $out_text = sprintf(PudimbooruLocale::translate("Blotter updated: %s"), date("m/d/y", \Safe\strtotime($entries[0]['entry_date'])));
             $in_text = $entries_list;
         }
 
@@ -126,9 +130,9 @@ class BlotterTheme extends Themelet
                 $pos_break,
                 SPAN(
                     ["style" => $pos_align],
-                    A(["href" => "#", "id" => "blotter2-toggle", "class" => "shm-blotter2-toggle"], "Show/Hide"),
+                    A(["href" => "#", "id" => "blotter2-toggle", "class" => "shm-blotter2-toggle"], PudimbooruLocale::translate("Show/Hide")),
                     " ",
-                    A(["href" => make_link("blotter/list")], "Show All")
+                    A(["href" => make_link("blotter/list")], PudimbooruLocale::translate("Show All"))
                 ),
             ),
             DIV(["id" => "blotter2", "class" => "shm-blotter2"], $in_text)

@@ -52,7 +52,7 @@ final class ReplaceFile extends Extension
     {
         /* In the future, could perhaps allow users to replace images that they own as well... */
         if (Ctx::$user->can(ReplaceFilePermission::REPLACE_IMAGE)) {
-            $event->add_button("Replace", "replace/{$event->image->id}");
+            $event->add_button("Trocar Arquivo", "replace/{$event->image->id}");
         }
     }
 

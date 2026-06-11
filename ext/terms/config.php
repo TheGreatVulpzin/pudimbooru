@@ -12,7 +12,7 @@ final class TermsConfig extends ConfigGroup
     #[ConfigMeta(
         "Message",
         ConfigType::STRING,
-        default: "Cookies may be used. Please read our [url=site://wiki/privacy]privacy policy[/url] for more information.\nBy accepting to enter you agree to our [url=site://wiki/rules]rules[/url] and [url=site://wiki/terms_of_service]terms of service[/url].",
+        default: "Cookies podem ser usados. Por favor leia nossa [url=site://wiki/privacy]política de privacidade[/url] para mais informações.\nPor concordar a entrar, você concorda com nossas [url=site://wiki/rules]regras[/url] e [url=site://wiki/terms_of_service]termos de serviço[/url].",
         input: ConfigInput::TEXTAREA
     )]
     public const MESSAGE = 'terms_message';

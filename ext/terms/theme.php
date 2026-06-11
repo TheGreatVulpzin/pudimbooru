@@ -21,8 +21,8 @@ class TermsTheme extends Themelet
                     $body,
                     SHM_SIMPLE_FORM(
                         make_link("accept_terms/$path"),
-                        BUTTON(["class" => "terms-modal-enter", "autofocus" => true], "Enter"),
-                        BUTTON(["formaction" => "https://google.com", "formmethod" => "GET"], "Leave"),
+                        BUTTON(["class" => "terms-modal-enter", "autofocus" => true], "Entrar"),
+                        BUTTON(["formaction" => "https://www.youtube.com/@cazum8", "formmethod" => "GET"], "Sair"),
                     )
                 )
             )

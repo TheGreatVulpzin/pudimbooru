@@ -51,7 +51,10 @@ class HomeTheme extends Themelet
 
     protected function build_title(string $sitename): HTMLElement
     {
-        return H1(A(["href" => make_link()], SPAN($sitename)));
+        return DIV(
+            ["class" => "front-title"],
+            H1(A(["href" => make_link()], SPAN($sitename)))
+        );
     }
 
     protected function build_links(HTMLElement $links): ?HTMLElement
@@ -72,7 +75,7 @@ class HomeTheme extends Themelet
                 children: [
                     INPUT(["name" => "search", "size" => "30", "type" => "search", "class" => "autocomplete_tags", "autofocus" => true]),
                     " ",
-                    SHM_SUBMIT("Search")
+                    SHM_SUBMIT(PudimbooruLocale::translate("Search"))
                 ]
             )
         );
@@ -114,9 +117,9 @@ class HomeTheme extends Themelet
                 empty($contact_link)
                     ? null
                     : emptyHTML(A(["href" => $contact_link], "Contact"), " - "),
-                " Serving $num_comma posts - ",
-                " Running ",
-                A(["href" => "https://github.com/shish/shimmie2/"], "Shimmie2")
+                "Servindo $num_comma posts - ",
+                "Rodando ",
+                A(["href" => "https://github.com/TheGreatVulpzin/pudimbooru"], "Pudimbooru")
             ))
         );
     }

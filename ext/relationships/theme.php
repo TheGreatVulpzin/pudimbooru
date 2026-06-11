@@ -69,12 +69,12 @@ class RelationshipsTheme extends Themelet
     public function get_help_html(): HTMLElement
     {
         return emptyHTML(
-            P("Search for posts that have parent/child relationships."),
-            SHM_COMMAND_EXAMPLE("parent=any", "Returns posts that have a parent."),
-            SHM_COMMAND_EXAMPLE("parent=none", "Returns posts that have no parent."),
-            SHM_COMMAND_EXAMPLE("parent=123", "Returns posts that have image 123 set as parent."),
-            SHM_COMMAND_EXAMPLE("child=any", "Returns posts that have at least 1 child."),
-            SHM_COMMAND_EXAMPLE("child=none", "Returns posts that have no children.")
+            P("Pesquisar por posts que têm relações de pai/filho."),
+            SHM_COMMAND_EXAMPLE("parent=any", "Pesquisa por posts que têm um pai."),
+            SHM_COMMAND_EXAMPLE("parent=none", "Pesquisa por posts que não têm um pai."),
+            SHM_COMMAND_EXAMPLE("parent=123", "Pesquisa por posts que têm a imagem 123 definida como pai."),
+            SHM_COMMAND_EXAMPLE("child=any", "Pesquisa por posts que têm pelo menos 1 filho."),
+            SHM_COMMAND_EXAMPLE("child=none", "Pesquisa por posts que não têm filhos.")
         );
     }
 }

@@ -6,6 +6,10 @@ namespace Shimmie2;
 
 use function MicroHTML\{A, BR, DIV, INPUT, LABEL, SMALL, SUP, TABLE, TBODY, TD, TEXTAREA, TH, THEAD, TR, emptyHTML};
 
+if (!class_exists('PudimbooruLocale') && file_exists(__DIR__ . '/../../themes/pudimbooru/locale.php')) {
+    require_once __DIR__ . '/../../themes/pudimbooru/locale.php';
+}
+
 use MicroHTML\HTMLElement;
 
 class ForumTheme extends Themelet
@@ -14,13 +18,13 @@ class ForumTheme extends Themelet
     public function display_thread_list(array $threads, bool $showAdminOptions, int $pageNumber, int $totalPages): void
     {
         if (empty($threads)) {
-            $html = emptyHTML("There are no threads to show.");
+            $html = emptyHTML(PudimbooruLocale::translate("There are no threads to show."));
         } else {
             $html = $this->make_thread_list($threads, $showAdminOptions);
         }
 
-        Ctx::$page->set_title("Forum");
-        Ctx::$page->add_block(new Block("Forum", $html, "main", 10));
+        Ctx::$page->set_title(PudimbooruLocale::translate("Forum"));
+        Ctx::$page->add_block(new Block(PudimbooruLocale::translate("Forum"), $html, "main", 10));
         $this->display_paginator("forum/index", null, $pageNumber, $totalPages);
     }
 
@@ -50,20 +54,20 @@ class ForumTheme extends Themelet
                 Ctx::$user->can(ForumPermission::FORUM_ADMIN) ? TR(
                     TD(),
                     TD(
-                        LABEL(["for" => "sticky"], "Sticky:"),
+                        LABEL(["for" => "sticky"], PudimbooruLocale::translate("Sticky:")),
                         INPUT(["name" => "sticky", "id" => "sticky", "type" => "checkbox", "value" => "Y"])
                     )
                 ) : null,
                 TR(
                     TD(
                         ["colspan" => 2],
-                        SHM_SUBMIT("Create"),
+                        SHM_SUBMIT(PudimbooruLocale::translate("Create")),
                     )
                 )
             )
         );
 
-        $blockTitle = "Write a new thread";
+        $blockTitle = PudimbooruLocale::translate("Write a new thread");
         Ctx::$page->set_title($blockTitle);
         Ctx::$page->add_block(new Block($blockTitle, $html, "main", 120));
     }
@@ -90,14 +94,14 @@ class ForumTheme extends Themelet
                     TR(
                         TD(
                             ["colspan" => 2],
-                            SHM_SUBMIT("Reply"),
+                            SHM_SUBMIT(PudimbooruLocale::translate("Reply")),
                         )
                     )
                 )
             )
         );
 
-        Ctx::$page->add_block(new Block("Answer to this thread", $html, "main", 130));
+        Ctx::$page->add_block(new Block(PudimbooruLocale::translate("Answer to this thread"), $html, "main", 130));
     }
 
 
@@ -129,7 +133,7 @@ class ForumTheme extends Themelet
                                 $showAdminOptions
                                     ? SHM_SIMPLE_FORM(
                                         make_link("forum/delete/$thread_id/$post->id"),
-                                        SHM_SUBMIT("Delete"),
+                                        SHM_SUBMIT(PudimbooruLocale::translate("Delete")),
                                     )
                                     : null
                             )
@@ -175,7 +179,7 @@ class ForumTheme extends Themelet
         $html = emptyHTML(
             DIV(
                 ["id" => "returnLink"],
-                A(["href" => make_link("forum/index")], "Return")
+                A(["href" => make_link("forum/index")], PudimbooruLocale::translate("Return"))
             ),
             BR(),
             BR(),
@@ -183,8 +187,8 @@ class ForumTheme extends Themelet
                 ["id" => "threadPosts", "class" => "zebra"],
                 THEAD(
                     TR(
-                        TH(["id" => "threadHeadUser"], "User"),
-                        TH("Message")
+                        TH(["id" => "threadHeadUser"], PudimbooruLocale::translate("User")),
+                        TH(PudimbooruLocale::translate("Message"))
                     )
                 ),
                 $tbody
@@ -198,16 +202,16 @@ class ForumTheme extends Themelet
 
     protected function edit_button(int $post_id, int $thread_id, string $text): HTMLElement
     {
-        return A(["class" => "forum_edit", "data-post_id" => $post_id, "data-thread_id" => $thread_id, "data-content" => $text, "onclick" => "Forum.edit(this);"], " Edit");
+        return A(["class" => "forum_edit", "data-post_id" => $post_id, "data-thread_id" => $thread_id, "data-content" => $text, "onclick" => "Forum.edit(this);"], PudimbooruLocale::translate("Edit"));
     }
 
     public function add_actions_block(int $thread_id): void
     {
         $html = SHM_SIMPLE_FORM(
             make_link("forum/nuke/$thread_id"),
-            SHM_SUBMIT("Delete Thread"),
+            SHM_SUBMIT(PudimbooruLocale::translate("Delete Thread")),
         );
-        Ctx::$page->add_block(new Block("Admin Actions", $html, "left"));
+        Ctx::$page->add_block(new Block(PudimbooruLocale::translate("Admin Actions"), $html, "left"));
     }
 
     /** @param ForumThread[] $threads */
@@ -218,11 +222,11 @@ class ForumTheme extends Themelet
             ["id" => "threadList", "class" => "zebra"],
             THEAD(
                 TR(
-                    TH("Title"),
-                    TH("Author"),
-                    TH("Updated"),
-                    TH("Responses"),
-                    $showAdminOptions ? TH("Actions") : null
+                    TH(PudimbooruLocale::translate("Title")),
+                    TH(PudimbooruLocale::translate("Author")),
+                    TH(PudimbooruLocale::translate("Updated")),
+                    TH(PudimbooruLocale::translate("Responses")),
+                    $showAdminOptions ? TH(PudimbooruLocale::translate("Actions")) : null
                 )
             ),
             $tbody
@@ -236,7 +240,7 @@ class ForumTheme extends Themelet
                 TR(
                     TD(
                         ["class" => "left"],
-                        $thread->sticky ? "Sticky: " : "",
+                        $thread->sticky ? PudimbooruLocale::translate("Sticky:") . " " : "",
                         A(["href" => make_link("forum/view/$thread->id")], $title)
                     ),
                     TD(
@@ -247,7 +251,7 @@ class ForumTheme extends Themelet
                     $showAdminOptions ? TD(
                         SHM_SIMPLE_FORM(
                             make_link("forum/nuke/$thread->id"),
-                            SHM_SUBMIT("Delete"),
+                            SHM_SUBMIT(PudimbooruLocale::translate("Delete")),
                         )
                     ) : null
                 )

@@ -121,8 +121,8 @@ final class ImageIO extends Extension
         $h_image_rate = sprintf("%.1f", ($i_image_count / $i_days_old));
         $images_link = search_link(["user={$event->display_user->name}"]);
         $event->add_part(emptyHTML(
-            A(["href" => $images_link], "Posts uploaded"),
-            ": $i_image_count, $h_image_rate per day"
+            A(["href" => $images_link], "Posts enviados"),
+            ": $i_image_count, $h_image_rate por dia"
         ));
     }
 
