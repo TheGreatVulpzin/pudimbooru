@@ -14,7 +14,7 @@
 Este é um fork do [Shimmie2](https://github.com/shish/shimmie2) com as seguintes personalizações:
 
 - **Tradução nativa** – Suporte a internacionalização via `PudimbooruLocale` (strings em português) (salvo a algumas partes que eu perdi a paciência e traduzi diretamente)
-- **Tema visual customizado** – Aparência adaptada para o estilo "Pudimbooru"
+- **Tema visual customizado** – Aparência adaptada para o estilo bem pudinesco, yummers!
 
 Todo o código-fonte original do Shimmie2 permanece sob a licença GPLv2, e as modificações específicas deste fork seguem a mesma licença.
 
