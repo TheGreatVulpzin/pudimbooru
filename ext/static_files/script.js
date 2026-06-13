@@ -41,27 +41,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let timeAgoText;
             if (seconds < 45) {
-                timeAgoText = "a few seconds ago";
+                timeAgoText = "há cerca de alguns segundos";
             } else if (seconds < 90) {
-                timeAgoText = "a minute ago";
+                timeAgoText = "há cerca de um minuto";
             } else if (minutes < 45) {
-                timeAgoText = minutes + " minutes ago";
+                timeAgoText = minutes + " minutos";
             } else if (minutes < 90) {
-                timeAgoText = "an hour ago";
+                timeAgoText = "há cerca de uma hora";
             } else if (hours < 24) {
-                timeAgoText = hours + " hours ago";
+                timeAgoText = hours + " horas";
             } else if (hours < 48) {
-                timeAgoText = "a day ago";
+                timeAgoText = "há cerca de um dia";
             } else if (days < 7) {
-                timeAgoText = days + " days ago";
+                timeAgoText = days + " dias";
             } else if (days < 14) {
-                timeAgoText = "a week ago";
+                timeAgoText = "há cerca de uma semana";
             } else if (days < 30) {
-                timeAgoText = weeks + " weeks ago";
+                timeAgoText = weeks + " semanas";
             } else if (days < 60) {
-                timeAgoText = "a month ago";
+                timeAgoText = "há cerca de um m~es";
             } else {
-                timeAgoText = months + " months ago";
+                timeAgoText = months + " meses";
             }
 
             timeElement.textContent = timeAgoText;

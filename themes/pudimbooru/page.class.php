@@ -1,0 +1,140 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Shimmie2;
+
+require_once __DIR__ . '/locale.php';
+
+use function MicroHTML\{A, ARTICLE, BODY, BR, DIV, FOOTER, H1, HEADER, IMG, LI, NAV, UL, emptyHTML, joinHTML};
+use function MicroHTML\{H3, SECTION};
+
+use MicroHTML\HTMLElement;
+
+/**
+ * Name: Danbooru 2 Theme
+ * Author: Bzchan <bzchan@animemahou.com>
+ *         Updated by Daniel Oaks <daniel@danieloaks.net>
+ *         Small changes added by zshall <http://seemslegit.com>
+ * Description: This is a simple theme changing the css to make shimme
+ *              look more like danbooru as well as adding a custom links
+ *              bar and title to the top of every page.
+ */
+
+class PudimbooruPage extends Page
+{
+    protected function body_html(): HTMLElement
+    {
+        list($nav_links, $sub_links) = $this->get_nav_links();
+
+        $left_block_html = [];
+        $user_block_html = [];
+        $main_block_html = [];
+        $sub_block_html = [];
+
+        foreach ($this->blocks as $block) {
+            switch ($block->section) {
+                case "left":
+                    $left_block_html[] = $this->block_html($block, true);
+                    break;
+                case "user":
+                    $user_block_html[] = $block->body;
+                    break;
+                case "subheading":
+                    $sub_block_html[] = $block->body;
+                    break;
+                case "main":
+                    $main_block_html[] = $this->block_html($block, false);
+                    break;
+                default:
+                    print "<p>error: {$block->header} using an unknown section ({$block->section})";
+                    break;
+            }
+        }
+
+        if ($this->subheading === "") {
+            $subheading = null;
+        } else {
+            $subheading = DIV(["id" => "subtitle"], $this->subheading);
+        }
+
+        $site_name = Ctx::$config->get(SetupConfig::TITLE);
+        $main_page = Ctx::$config->get(SetupConfig::MAIN_PAGE);
+
+        $custom_links = emptyHTML();
+        foreach ($nav_links as $nav_link) {
+            $custom_links->appendChild(LI($this->navlinks($nav_link->link, $nav_link->description, $nav_link->active)));
+        }
+
+        $custom_sublinks = "";
+        if (count($sub_links) > 0) {
+            $custom_sublinks = DIV(["class" => "sbar"]);
+            foreach ($sub_links as $nav_link) {
+                $custom_sublinks->appendChild(LI($this->navlinks($nav_link->link, $nav_link->description, $nav_link->active)));
+            }
+        }
+
+        $title_link = H1(
+            ["id" => "site-title"],
+            IMG(["src" => "/favicon.ico", "alt" => "", "class" => "logo", "width" => "32", "height" => "32"]),
+            A(["href" => make_link($main_page)], $site_name)
+        );
+        $flash_html = $this->flash_html();
+        $footer_html = $this->footer_html();
+
+        return BODY(
+            $this->body_attrs(),
+            HEADER(
+                $title_link,
+                UL(["id" => "navbar", "class" => "flat-list"], $custom_links),
+                UL(["id" => "subnavbar", "class" => "flat-list"], $custom_sublinks),
+            ),
+            $subheading,
+            emptyHTML(...$sub_block_html),
+            NAV(...$left_block_html),
+            ARTICLE(
+                $flash_html,
+                ...$main_block_html
+            ),
+            FOOTER(DIV($footer_html))
+        );
+    }
+
+    protected function footer_html(): HTMLElement
+    {
+        $contact_link = contact_link();
+        return joinHTML("", [
+            "Pudim(©) aos seus respectivos donos, rodando ",
+            A(["href" => "https://github.com/TheGreatVulpzin/pudimbooru", "title" => "Pudimbooru"], "Pudimbooru"),
+            ", baseado no ",
+            A(["href" => "https://github.com/shish/shimmie2/"], "Shimmie"),
+            ".",
+            $contact_link ? emptyHTML(BR(), A(["href" => $contact_link], PudimbooruLocale::translate("Contact"))) : ""
+        ]);
+    }
+
+    protected function block_html(Block $block, bool $hidable): HTMLElement
+    {
+        $html = SECTION(['id' => $block->id]);
+        if (!empty($block->header)) {
+            $header = ($block->header === "Posts") ? "&nbsp;" : $block->header;
+            if (is_string($header) && $header !== "&nbsp;") {
+                $header = PudimbooruLocale::nav($header);
+            }
+            $html->appendChild(H3(["data-toggle-sel" => "#{$block->id}", "class" => $hidable ? "shm-toggler" : ""], $header));
+        }
+        $html->appendChild(DIV(['class' => "blockbody"], $block->body));
+        return $html;
+    }
+
+    private function navlinks(Url $link, HTMLElement|string $desc, bool $active): HTMLElement
+    {
+        if (is_string($desc)) {
+            $desc = PudimbooruLocale::nav($desc);
+        }
+        return A([
+            "class" => $active ? "current-page" : "tab",
+            "href" => $link,
+        ], $desc);
+    }
+}

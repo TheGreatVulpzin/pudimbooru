@@ -11,7 +11,7 @@ class BiographyTheme extends Themelet
 {
     public function display_biography(string $bio): void
     {
-        Ctx::$page->add_block(new Block("About Me", format_text($bio), "main", 30, "about-me"));
+        Ctx::$page->add_block(new Block("Sobre mim", format_text($bio), "main", 30, "about-me"));
     }
 
     public function display_composer(User $duser, string $bio): void
@@ -21,10 +21,10 @@ class BiographyTheme extends Themelet
             TABLE(
                 ["class" => "form", "style" => "width: 100%"],
                 TR(TD(TEXTAREA(["rows" => "6", "name" => "biography"], $bio))),
-                TR(TD(SHM_SUBMIT("Save")))
+                TR(TD(SHM_SUBMIT("Salvar")))
             ),
         );
 
-        Ctx::$page->add_block(new Block("About Me", $html, "main", 30));
+        Ctx::$page->add_block(new Block("Sobre mim", $html, "main", 30));
     }
 }

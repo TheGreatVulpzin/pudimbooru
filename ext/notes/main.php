@@ -196,7 +196,7 @@ final class Notes extends Extension
             $event->add_part($this->theme->nuke_requests_button($event->image->id), 43);
         }
 
-        $event->add_button("View Note History", "note_history/{$event->image->id}", 44);
+        $event->add_button("Ver Histórico de Notas", "note_history/{$event->image->id}", 44);
     }
 
     #[EventListener]

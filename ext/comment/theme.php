@@ -267,7 +267,7 @@ class CommentListTheme extends Themelet
                 TEXTAREA(["id" => "comment_on_$image_id", "name" => "comment", "rows" => 5, "cols" => 50]),
                 Captcha::get_html(CommentPermission::SKIP_CAPTCHA),
                 BR(),
-                INPUT(["type" => "submit", "value" => "Post Comment"])
+                INPUT(["type" => "submit", "value" => "Postar Comentário"])
             ),
         );
     }
@@ -275,12 +275,12 @@ class CommentListTheme extends Themelet
     public function get_help_html(): HTMLElement
     {
         return emptyHTML(
-            P("Search for posts containing a certain number of comments, or comments by a particular individual."),
-            SHM_COMMAND_EXAMPLE("comments>0", "Returns posts with 1 or more comments"),
-            P("Can use <, <=, >, >=, or =."),
-            SHM_COMMAND_EXAMPLE("commented_by=username", "Returns posts that have been commented on by \"username\"."),
-            SHM_COMMAND_EXAMPLE("comments_locked=yes", "Returns posts with locked comments"),
-            SHM_COMMAND_EXAMPLE("comments_locked=no", "Returns posts with unlocked comments"),
+            P("Pesquise por posts com um certo número de comentários, ou comentários de um indivíduo específico."),
+            SHM_COMMAND_EXAMPLE("comments>0", "Pesquise por posts com 1 ou mais comentários"),
+            P("Pode usar <, <=, >, >=, or =."),
+            SHM_COMMAND_EXAMPLE("commented_by=username", "Pesquisa por posts que foram comentários pelo usuário \"username\"."),
+            SHM_COMMAND_EXAMPLE("comments_locked=yes", "Pesquisa por posts com comentários trancados"),
+            SHM_COMMAND_EXAMPLE("comments_locked=no", "Pesquisa por posts com comentários destrancados"),
             //SHM_COMMAND_EXAMPLE("commented_by_userno=123", "Returns posts that have been commented on by user 123."),
         );
     }

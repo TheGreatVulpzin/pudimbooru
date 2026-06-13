@@ -80,8 +80,8 @@ final class Favorites extends Extension
         $h_favorites_rate = sprintf("%.1f", ($i_favorites_count / $i_days_old));
         $favorites_link = search_link(["favorited_by={$event->display_user->name}"]);
         $event->add_part(emptyHTML(
-            A(["href" => $favorites_link], "Posts favorited"),
-            ": $i_favorites_count, $h_favorites_rate per day"
+            A(["href" => $favorites_link], "Posts favoritados"),
+            ": $i_favorites_count, $h_favorites_rate por dia"
         ));
     }
 

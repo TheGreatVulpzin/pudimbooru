@@ -28,14 +28,14 @@ final class Home extends Extension
         if (!empty(Ctx::$config->get(HomeConfig::LINKS))) {
             $main_links = Ctx::$config->get(HomeConfig::LINKS);
         } else {
-            $main_links = '[url=site://post/list]Posts[/url][url=site://comment/list]Comments[/url][url=site://tags]Tags[/url]';
+            $main_links = '[url=site://post/list]Posts[/url][url=site://comment/list]Comentários[/url][url=site://tags]Tags[/url]';
             if (PoolsInfo::is_enabled()) {
-                $main_links .= '[url=site://pool/list]Pools[/url]';
+                $main_links .= '[url=site://pool/list]Coleções[/url]';
             }
             if (WikiInfo::is_enabled()) {
                 $main_links .= '[url=site://wiki]Wiki[/url]';
             }
-            $main_links .= '[url=site://ext_doc]Documentation[/url]';
+            $main_links .= '[url=site://wiki/about]Sobre Nós[/url]';
         }
 
         return $this->theme->build_body(

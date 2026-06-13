@@ -6,6 +6,10 @@ namespace Shimmie2;
 
 use function MicroHTML\{A, B, DIV, SPAN, emptyHTML};
 
+if (!class_exists('PudimbooruLocale') && file_exists(__DIR__ . '/../../themes/pudimbooru/locale.php')) {
+    require_once __DIR__ . '/../../themes/pudimbooru/locale.php';
+}
+
 use MicroHTML\HTMLElement;
 
 use function MicroHTML\{TABLE, TBODY, TD, TH, THEAD, TR};
@@ -21,9 +25,9 @@ class StatisticsTheme extends Themelet
             $favorite_table,
         );
 
-        Ctx::$page->set_title("Stats - Top $limit");
+        Ctx::$page->set_title(PudimbooruLocale::translate("Stats") . " - " . PudimbooruLocale::translate("Top") . " $limit");
         $this->display_navigation();
-        Ctx::$page->add_block(new Block("Stats", $html, "main", 20));
+        Ctx::$page->add_block(new Block(PudimbooruLocale::translate("Stats"), $html, "main", 20));
     }
 
     /**
@@ -50,7 +54,7 @@ class StatisticsTheme extends Themelet
             ["class" => "zebra stats-table"],
             THEAD(
                 TR(TH(["colspan" => 3], B($title))),
-                TR(TH([], "Place"), TH([], "Amount"), TH([], "User"))
+                TR(TH([], PudimbooruLocale::translate("Place")), TH([], PudimbooruLocale::translate("Amount")), TH([], PudimbooruLocale::translate("User")))
             ),
             TBODY($rows)
         );

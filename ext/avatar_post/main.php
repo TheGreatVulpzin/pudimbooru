@@ -43,7 +43,7 @@ final class AvatarPost extends AvatarExtension
     public function onPostAdminBlockBuilding(PostAdminBlockBuildingEvent $event): void
     {
         if (Ctx::$user->can(UserAccountsPermission::CHANGE_USER_SETTING)) {
-            $event->add_button("Set Image As Avatar", "set_avatar/".$event->image->id);
+            $event->add_button("Definir como Avatar", "set_avatar/".$event->image->id);
         }
     }
 

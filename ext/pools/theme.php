@@ -7,6 +7,10 @@ namespace Shimmie2;
 use function MicroHTML\{A,BR,DIV,INPUT,P,SPAN,TABLE,TBODY,TD,TEXTAREA,TH,THEAD,TR};
 use function MicroHTML\emptyHTML;
 
+if (!class_exists('PudimbooruLocale') && file_exists(__DIR__ . '/../../themes/pudimbooru/locale.php')) {
+    require_once __DIR__ . '/../../themes/pudimbooru/locale.php';
+}
+
 use MicroHTML\HTMLElement;
 
 /**
@@ -61,23 +65,28 @@ class PoolsTheme extends Themelet
                 TD(["class" => "left"], $pool_link),
                 TD($user_link),
                 TD($pool->posts),
-                TD($pool->public ? "Yes" : "No")
+                TD($pool->public ? PudimbooruLocale::translate("Yes") : PudimbooruLocale::translate("No"))
             );
         }
 
         $table = TABLE(
             ["id" => "poolsList", "class" => "zebra"],
-            THEAD(TR(TH("Name"), TH("Creator"), TH("Posts"), TH("Public"))),
+            THEAD(TR(TH(PudimbooruLocale::translate("Name")), TH(PudimbooruLocale::translate("Creator")), TH(PudimbooruLocale::translate("Posts")), TH(PudimbooruLocale::translate("Public")))),
             TBODY(...$pool_rows)
         );
 
-        $order_arr = ['created' => 'Recently created', 'updated' => 'Last updated', 'name' => 'Name', 'count' => 'Post Count'];
+        $order_arr = [
+            'created' => PudimbooruLocale::translate('Recently created'),
+            'updated' => PudimbooruLocale::translate('Last updated'),
+            'name' => PudimbooruLocale::translate('Name'),
+            'count' => PudimbooruLocale::translate('Post Count'),
+        ];
         $order_selected = Ctx::$page->get_cookie('ui-order-pool') ?? "";
         $order_sel = SHM_SELECT("order_pool", $order_arr, selected_options: [$order_selected], attrs: ["id" => "order_pool"]);
 
-        $this->display_top(null, "Pools");
-        Ctx::$page->add_block(new Block("Order By", $order_sel, "left", 15));
-        Ctx::$page->add_block(new Block("Pools", $table, position: 10));
+        $this->display_top(null, PudimbooruLocale::translate("Pools"));
+        Ctx::$page->add_block(new Block(PudimbooruLocale::translate("Order By"), $order_sel, "left", 15));
+        Ctx::$page->add_block(new Block(PudimbooruLocale::translate("Pools"), $table, position: 10));
 
         if ($search !== "" and !str_starts_with($search, '/')) {
             $search = '/'.$search;
@@ -91,10 +100,10 @@ class PoolsTheme extends Themelet
     public function new_pool_composer(): void
     {
         $form = SHM_SIMPLE_FORM(make_link("pool/create"), TABLE(
-            TR(TD("Title:"), TD(INPUT(["type" => "text", "name" => "title"]))),
-            TR(TD("Public?:"), TD("Yes", INPUT(["type" => "radio", "name" => "public", "value" => "Y", "checked" => "checked"]), "No", INPUT(["type" => "radio", "name" => "public", "value" => "N"]))),
-            TR(TD("Description:"), TD(TEXTAREA(["name" => "description"]))),
-            TR(TD(["colspan" => "2"], SHM_SUBMIT("Create")))
+            TR(TD(PudimbooruLocale::translate("Title") . ':'), TD(INPUT(["type" => "text", "name" => "title"]))),
+            TR(TD(PudimbooruLocale::translate("Public") . '?:'), TD(PudimbooruLocale::translate("Yes"), INPUT(["type" => "radio", "name" => "public", "value" => "Y", "checked" => "checked"]), PudimbooruLocale::translate("No"), INPUT(["type" => "radio", "name" => "public", "value" => "N"]))),
+            TR(TD(PudimbooruLocale::translate("Description") . ':'), TD(TEXTAREA(["name" => "description"]))),
+            TR(TD(["colspan" => "2"], SHM_SUBMIT(PudimbooruLocale::translate("Create"))))
         ));
 
         $this->display_top(null, "Create Pool");
@@ -104,11 +113,11 @@ class PoolsTheme extends Themelet
     private function display_top(?Pool $pool, string $heading, bool $check_all = false): void
     {
         $poolnav = emptyHTML(
-            A(["href" => make_link("pool/list")], "Pool Index"),
+            A(["href" => make_link("pool/list")], PudimbooruLocale::translate("Pool Index")),
             BR(),
-            A(["href" => make_link("pool/new")], "Create Pool"),
+            A(["href" => make_link("pool/new")], PudimbooruLocale::translate("Create Pool")),
             BR(),
-            A(["href" => make_link("pool/updated")], "Pool Changes")
+            A(["href" => make_link("pool/updated")], PudimbooruLocale::translate("Pool Changes"))
         );
 
         $search = SHM_SIMPLE_FORM(
@@ -120,7 +129,7 @@ class PoolsTheme extends Themelet
             ]),
             INPUT([
                 "type" => "submit",
-                "value" => "Go",
+                "value" => PudimbooruLocale::translate("Go"),
                 "style" => "width:20%"
             ])
         );
@@ -128,8 +137,8 @@ class PoolsTheme extends Themelet
         $page = Ctx::$page;
         $page->set_title($heading);
         $this->display_navigation();
-        $page->add_block(new Block("Pool Navigation", $poolnav, "left", 10));
-        $page->add_block(new Block("Search", $search, "left", 10));
+        $page->add_block(new Block(PudimbooruLocale::translate("Pool Navigation"), $poolnav, "left", 10));
+        $page->add_block(new Block(PudimbooruLocale::translate("Search"), $search, "left", 10));
 
         if (!is_null($pool)) {
             if ($pool->public || Ctx::$user->can(PoolsPermission::ADMIN)) {// IF THE POOL IS PUBLIC OR IS ADMIN SHOW EDIT PANEL
@@ -146,14 +155,14 @@ class PoolsTheme extends Themelet
      */
     public function view_pool(Pool $pool, array $images, int $pageNumber, int $totalPages): void
     {
-        $this->display_top($pool, "Pool: " . $pool->title);
+        $this->display_top($pool, PudimbooruLocale::translate("Pool") . ": " . $pool->title);
 
         $image_list = DIV(["class" => "shm-image-list"]);
         foreach ($images as $image) {
             $image_list->appendChild($this->build_thumb($image));
         }
 
-        Ctx::$page->add_block(new Block("Viewing Posts", $image_list, "main", 30));
+        Ctx::$page->add_block(new Block(PudimbooruLocale::translate("Viewing Posts"), $image_list, "main", 30));
         $this->display_paginator("pool/view/" . $pool->id, null, $pageNumber, $totalPages);
     }
 
@@ -199,7 +208,7 @@ class PoolsTheme extends Themelet
             );
         }
 
-        Ctx::$page->add_block(new Block("Manage Pool", $editor, "left", 15));
+        Ctx::$page->add_block(new Block(PudimbooruLocale::translate("Manage Pool"), $editor, "left", 15));
     }
 
     /**
@@ -222,7 +231,7 @@ class PoolsTheme extends Themelet
             SHM_SUBMIT("Add Selected", ["name" => "edit", "id" => "edit_pool_add_btn", "onclick" => "return confirm('Are you sure you want to add selected posts to this pool?')"]),
         );
 
-        Ctx::$page->add_block(new Block("Import", $form, "main", 30));
+        Ctx::$page->add_block(new Block(PudimbooruLocale::translate("Import"), $form, "main", 30));
     }
 
 
@@ -251,7 +260,7 @@ class PoolsTheme extends Themelet
             SHM_SUBMIT("Order", ["name" => "edit", "id" => "edit_pool_order"])
         );
 
-        Ctx::$page->add_block(new Block("Sorting Posts", $form, position: 30));
+        Ctx::$page->add_block(new Block(PudimbooruLocale::translate("Sorting Posts"), $form, position: 30));
     }
 
     /**
@@ -369,12 +378,12 @@ class PoolsTheme extends Themelet
     public function get_help_html(): HTMLElement
     {
         return emptyHTML(
-            P("Search for posts that are in a pool."),
-            SHM_COMMAND_EXAMPLE("pool=1", "Returns posts in pool #1"),
-            SHM_COMMAND_EXAMPLE("pool=any", "Returns posts in any pool"),
-            SHM_COMMAND_EXAMPLE("pool=none", "Returns posts not in any pool"),
-            SHM_COMMAND_EXAMPLE("pool_by_name=swimming", "Returns posts in the \"swimming\" pool"),
-            SHM_COMMAND_EXAMPLE("pool_by_name=swimming_pool", "Returns posts in the \"swimming pool\" pool. Note that the underscore becomes a space")
+            P("Pesquisar por posts que estão em uma coleção."),
+            SHM_COMMAND_EXAMPLE("pool=1", "Pesquisa por posts na coleção #1"),
+            SHM_COMMAND_EXAMPLE("pool=any", "Pesquisa por posts em qualquer coleção"),
+            SHM_COMMAND_EXAMPLE("pool=none", "Pesquisa por posts que não estão em nenhuma coleção"),
+            SHM_COMMAND_EXAMPLE("pool_by_name=genoto", "Pesquisa por posts na coleção \"genoto\""),
+            SHM_COMMAND_EXAMPLE("pool_by_name=genoto_chinês", "Pesquisa por posts na coleção \"genoto_chinês\". Note que o underscore se torna um espaço")
         );
     }
 }

@@ -138,7 +138,7 @@ final class User
     {
         $row = Ctx::$database->get_row("SELECT * FROM users WHERE LOWER(name) = LOWER(:name)", ["name" => $name]);
         if (is_null($row)) {
-            throw new UserNotFound("Can't find any user named $name");
+            throw new UserNotFound("Não foi possível encontrar qualquer usuário chamado $name");
         } else {
             return new User($row);
         }
@@ -158,18 +158,18 @@ final class User
             try {
                 $my_user = User::by_name(str_replace(" ", "_", $name));
             } catch (UserNotFound $e) {
-                Log::warning("core-user", "Failed to log in as $name (Invalid username)");
+                Log::warning("core-user", "Falha em se conectar como $name (Username inválido)");
                 throw $e;
             }
         }
 
         assert(!is_null($my_user->passhash));
         if (password_verify($pass, $my_user->passhash)) {
-            Log::info("core-user", "Logged in as $name ({$my_user->class->name})");
+            Log::info("core-user", "Conectado como $name ({$my_user->class->name})");
             return $my_user;
         } else {
-            Log::warning("core-user", "Failed to log in as $name (Invalid password)");
-            throw new UserNotFound("Can't find anybody with that username and password");
+            Log::warning("core-user", "Falha em se conectar como $name (Senha inválida)");
+            throw new UserNotFound("Não foi possível encontrar nenhum usuário com esse nome e senha");
         }
     }
 
@@ -177,7 +177,7 @@ final class User
     {
         $anon_id = Ctx::$config->get(UserAccountsConfig::ANON_ID);
         if ($anon_id === null) {
-            throw new ServerError("Anonymous user ID not set");
+            throw new ServerError("ID de usuário anônimo não definido");
         }
         return User::by_id($anon_id);
     }

@@ -31,8 +31,8 @@ final class RotateImage extends Extension
             /* Add a link to rotate the image */
             $event->add_part(SHM_SIMPLE_FORM(
                 make_link('rotate/'.$event->image->id),
-                INPUT(["type" => 'number', "name" => 'rotate_deg', "id" => "rotate_deg", "placeholder" => "Rotation degrees"]),
-                INPUT(["type" => 'submit', "value" => 'Rotate', "id" => "rotatebutton"]),
+                INPUT(["type" => 'number', "name" => 'rotate_deg', "id" => "rotate_deg", "placeholder" => "Graus de rotação"]),
+                INPUT(["type" => 'submit', "value" => 'Rotacionar', "id" => "rotatebutton"]),
             ));
         }
     }

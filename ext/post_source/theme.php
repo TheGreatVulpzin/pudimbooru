@@ -52,7 +52,7 @@ class PostSourceTheme extends Themelet
     public function get_upload_common_html(): HTMLElement
     {
         return TR(
-            TH(["width" => "20"], "Common Source"),
+            TH(["width" => "20"], "Fontes Comuns"),
             TD(["colspan" => "6"], INPUT(["name" => "source", "type" => "text", "placeholder" => "https://..."]))
         );
     }

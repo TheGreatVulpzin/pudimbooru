@@ -17,14 +17,14 @@ class NotesTheme extends Themelet
 {
     public function note_button(int $image_id): HTMLElement
     {
-        return FORM(INPUT(["type" => "button", "value" => "Add Note", "onclick" => "Notes.addNewNote()"]));
+        return FORM(INPUT(["type" => "button", "value" => "Adicionar Nota", "onclick" => "Notes.addNewNote()"]));
     }
     public function request_button(int $image_id): HTMLElement
     {
         return SHM_SIMPLE_FORM(
             make_link("note/add_request"),
             INPUT(["type" => "hidden", "name" => "image_id", "value" => $image_id]),
-            INPUT(["type" => "submit", "value" => "Add Note Request"]),
+            INPUT(["type" => "submit", "value" => "Adicionar Pedido de Nota"]),
         );
     }
     public function nuke_notes_button(int $image_id): HTMLElement
@@ -32,7 +32,7 @@ class NotesTheme extends Themelet
         return SHM_SIMPLE_FORM(
             make_link("note/nuke_notes"),
             INPUT(["type" => "hidden", "name" => "image_id", "value" => $image_id]),
-            INPUT(["type" => "submit", "value" => "Nuke Notes", "onclick" => "return confirm('Are you sure?')"]),
+            INPUT(["type" => "submit", "value" => "Oblitere as Notas", "onclick" => "return confirm('Você tem certeza?')"]),
         );
     }
     public function nuke_requests_button(int $image_id): HTMLElement
@@ -40,7 +40,7 @@ class NotesTheme extends Themelet
         return SHM_SIMPLE_FORM(
             make_link("note/nuke_requests"),
             INPUT(["type" => "hidden", "name" => "image_id", "value" => $image_id]),
-            INPUT(["type" => "submit", "value" => "Nuke Requests", "onclick" => "return confirm('Are you sure?')"]),
+            INPUT(["type" => "submit", "value" => "Oblitere os Pedidos", "onclick" => "return confirm('Você tem certeza?')"]),
         );
     }
 
@@ -163,8 +163,8 @@ class NotesTheme extends Themelet
     public function display_histories(array $history, int $pageNumber, int $totalPages): void
     {
         $page = Ctx::$page;
-        $page->set_title("Note Updates");
-        $page->add_block(new Block("Note Updates", $this->history_list($history, false), "main", 10));
+        $page->set_title("Atualizações de Nota");
+        $page->add_block(new Block("Atualizações de Nota", $this->history_list($history, false), "main", 10));
         $this->display_paginator("note/updated", null, $pageNumber, $totalPages);
     }
 
@@ -174,8 +174,8 @@ class NotesTheme extends Themelet
     public function display_history(array $history, int $pageNumber, int $totalPages): void
     {
         $page = Ctx::$page;
-        $page->set_title("Note History");
-        $page->add_block(new Block("Note History", $this->history_list($history, true), "main", 10));
+        $page->set_title("Histórico de Notas");
+        $page->add_block(new Block("Histórico de Notas", $this->history_list($history, true), "main", 10));
         $this->display_paginator("note/updated", null, $pageNumber, $totalPages);
     }
 
@@ -185,20 +185,20 @@ class NotesTheme extends Themelet
     public function display_image_history(array $history, int $imageID, int $pageNumber, int $totalPages): void
     {
         $page = Ctx::$page;
-        $page->set_title("Note History #$imageID");
-        $page->set_heading("Note History #$imageID");
-        $page->add_block(new Block("Note History #$imageID", $this->history_list($history, true), "main", 10));
+        $page->set_title("Histórico de Notas #$imageID");
+        $page->set_heading("Histórico de Notas #$imageID");
+        $page->add_block(new Block("Histórico de Notas #$imageID", $this->history_list($history, true), "main", 10));
         $this->display_paginator("note_history/$imageID", null, $pageNumber, $totalPages);
     }
 
     public function get_help_html(): HTMLElement
     {
         return emptyHTML(
-            P("Search for posts with notes."),
-            SHM_COMMAND_EXAMPLE("note=noted", "Returns posts with a note matching 'noted'."),
-            SHM_COMMAND_EXAMPLE("notes>0", "Returns posts with 1 or more notes."),
-            P("Can use <, <=, >, >=, or =."),
-            SHM_COMMAND_EXAMPLE("notes_by=username", "Returns posts with note(s) by 'username'."),
+            P("Pesquisar por posts com notas."),
+            SHM_COMMAND_EXAMPLE("note=anotado", "Pesquisa por posts com uma nota dizendo 'anotado'."),
+            SHM_COMMAND_EXAMPLE("notes>0", "Pesquisa por posts com 1 ou mais notas."),
+            P("Pode usar <, <=, >, >=, ou =."),
+            SHM_COMMAND_EXAMPLE("notes_by=username", "Pesquisa por posts com nota(s) de 'username'."),
         );
     }
 }
