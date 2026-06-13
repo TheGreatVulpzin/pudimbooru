@@ -50,7 +50,7 @@ class PostTagsTheme extends Themelet
     public function get_upload_common_html(): HTMLElement
     {
         return TR(
-            TH(["width" => "20"], "Common Tags"),
+            TH(["width" => "20"], "Tags Comuns"),
             TD(["colspan" => "6"], INPUT(["name" => "tags", "type" => "text", "placeholder" => "tagme", "class" => "autocomplete_tags"]))
         );
     }

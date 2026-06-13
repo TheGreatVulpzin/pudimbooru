@@ -53,12 +53,21 @@ final class HelpPages extends Extension
         if ($event->page_matches("help/{topic}")) {
             $pages = send_event(new HelpPageListBuildingEvent())->pages;
             $name = $event->get_arg('topic');
-            if (array_key_exists($name, $pages)) {
-                $title = $pages[$name];
-            } else {
+            if (!array_key_exists($name, $pages)) {
                 return;
             }
 
+            if ($name === "faq") {
+                $page->set_redirect(make_link("wiki/faq"));
+                return;
+            }
+
+            if ($name === "about") {
+                $page->set_redirect(make_link("wiki/about"));
+                return;
+            }
+
+            $title = $pages[$name];
             $this->theme->display_help_page($title, $pages);
             $hpbe = send_event(new HelpPageBuildingEvent($name));
             foreach ($hpbe->get_parts() as $block) {
@@ -97,6 +106,8 @@ final class HelpPages extends Extension
     {
         $event->add_page("search", "Searching");
         $event->add_page("licenses", "Licenses");
+        $event->add_page("faq", "Perguntas Frequentes");
+        $event->add_page("about", "Sobre Nós");
     }
 
     #[EventListener]

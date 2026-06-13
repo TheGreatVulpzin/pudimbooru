@@ -147,7 +147,7 @@ final class PudimbooruLocale
         "Limit per file %s" => "Limite por arquivo %s",
         "Total limit %s" => "Limite total %s",
         "Current total" => "Total atual",
-        "Post specific %s" => "Específico do post %s",
+        "Post specific %s" => "%s Especificas por Post",
         "Bookmarklets" => "Bookmarklets",
         "Login form" => "Formulário de login",
         "Signup" => "Cadastro",
