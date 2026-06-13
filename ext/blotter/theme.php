@@ -129,11 +129,11 @@ class BlotterTheme extends Themelet
                 SPAN($out_text),
                 $pos_break,
                 SPAN(
-                    ["style" => $pos_align],
-                    A(["href" => "#", "id" => "blotter2-toggle", "class" => "shm-blotter2-toggle"], PudimbooruLocale::translate("Show/Hide")),
-                    " ",
-                    A(["href" => make_link("blotter/list")], PudimbooruLocale::translate("Show All"))
-                ),
+                ["style" => $pos_align],
+                A(["href" => "#", "class" => "shm-toggler", "data-toggle-sel" => ".shm-blotter2"], PudimbooruLocale::translate("Show/Hide")),
+                " ",
+              A(["href" => make_link("blotter/list")], PudimbooruLocale::translate("Show All"))
+              ),
             ),
             DIV(["id" => "blotter2", "class" => "shm-blotter2"], $in_text)
         );
