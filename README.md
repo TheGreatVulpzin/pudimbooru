@@ -13,7 +13,7 @@
 
 Seja bem-vindo ao repositório do Pudimbooru, um fork do [Shimmie2](https://github.com/shish/shimmie2) com as seguintes personalizações:
 
-- **Tradução nativa** – Suporte a internacionalização via `PudimbooruLocale` (strings em português) (salvo a algumas partes que eu perdi a paciência e traduzi diretamente)
+- **Tradução para Português** – Suporte a internacionalização via `PudimbooruLocale` (strings em português) (salvo a algumas partes que eu perdi a paciência e traduzi diretamente)
 - **Tema Visual** – Aparência adaptada para o estilo bem pudinesco, yummers!
 - **Counter8** - Um counter customizado do universo do cazum8!
 
