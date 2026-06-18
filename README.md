@@ -1,35 +1,38 @@
 ```
-     _________.__     .__                   .__         ________
-    /   _____/|  |__  |__|  _____    _____  |__|  ____  \_____  \
-    \_____  \ |  |  \ |  | /     \  /     \ |  |_/ __ \  /  ____/
-    /        \|   Y  \|  ||  Y Y  \|  Y Y  \|  |\  ___/ /       \
-   /_______  /|___|  /|__||__|_|  /|__|_|  /|__| \___  >\_______ \
-           \/      \/           \/       \/          \/         \/
+ ____              __                  __                                       
+/\  _`\           /\ \  __            /\ \                                      
+\ \ \L\ \__  __   \_\ \/\_\    ___ ___\ \ \____    ___     ___   _ __   __  __  
+ \ \ ,__/\ \/\ \  /'_` \/\ \ /' __` __`\ \ '__`\  / __`\  / __`\/\`'__\/\ \/\ \ 
+  \ \ \/\ \ \_\ \/\ \L\ \ \ \/\ \/\ \/\ \ \ \L\ \/\ \L\ \/\ \L\ \ \ \/ \ \ \_\ \
+   \ \_\ \ \____/\ \___,_\ \_\ \_\ \_\ \_\ \_,__/\ \____/\ \____/\ \_\  \ \____/
+    \/_/  \/___/  \/__,_ /\/_/\/_/\/_/\/_/\/___/  \/___/  \/___/  \/_/   \/___/ 
 
 ```
 
-# Shimmie
+# Pudimbooru
 
-[![Tests](https://github.com/shish/shimmie2/actions/workflows/tests.yml/badge.svg)](https://github.com/shish/shimmie2/actions/workflows/tests.yml)
-[![Matrix](https://matrix.to/img/matrix-badge.svg)](https://matrix.to/#/#shimmie:matrix.org)
+Este é um fork do [Shimmie2](https://github.com/shish/shimmie2) com as seguintes personalizações:
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/shish/shimmie2?quickstart=1)
+- **Tradução nativa** – Suporte a internacionalização via `PudimbooruLocale` (strings em português) (salvo a algumas partes que eu perdi a paciência e traduzi diretamente)
+- **Tema visual customizado** – Aparência adaptada para o estilo bem pudinesco, yummers!
 
-# Documentation
+Todo o código-fonte original do Shimmie2 permanece sob a licença GPLv2, e as modificações específicas deste fork seguem a mesma licença.
 
-* [Install straight on disk](https://github.com/shish/shimmie2/wiki/Install)
-* [Install in docker container](https://github.com/shish/shimmie2/wiki/Docker)
-* [Upgrade process](https://github.com/shish/shimmie2/wiki/Upgrade)
-* [Advanced config](./core/Config/SysConfig.php)
-* [Developer notes](https://github.com/shish/shimmie2/wiki/Development-Info)
-* [High-performance notes](https://github.com/shish/shimmie2/wiki/Performance)
+# Documentação (em inglês direta do Shimmie2)
 
+* [Instalação direta no disco](https://github.com/shish/shimmie2/wiki/Install) (válido para o Pudimbooru)
+* [Instalação com Docker](https://github.com/shish/shimmie2/wiki/Docker)
+* [Processo de atualização (upgrade)](https://github.com/shish/shimmie2/wiki/Upgrade)
+* [Configurações avançadas](./core/Config/SysConfig.php)
+* [Notas para desenvolvedores](https://github.com/shish/shimmie2/wiki/Development-Info)
+* [Dicas de alta performance](https://github.com/shish/shimmie2/wiki/Performance)
 
-# Licence
+# Licença
 
-All code is released under the [GNU GPL Version 2](https://www.gnu.org/licenses/gpl-2.0.html) unless mentioned otherwise.
+Este projeto é distribuído sob os termos da **GNU General Public License versão 2** (GPLv2), assim como o Shimmie2 original.  
+Você pode encontrar uma cópia completa da licença no arquivo [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html) ou no site da Free Software Foundation.
 
-If you give shimmie to someone else, you have to give them the source (which
-should be easy, as PHP is an interpreted language...). If you want to add
-customisations to your own site, then those customisations belong to you,
-and you can do what you want with them.
+**Termos:**  
+- Você pode usar, modificar e distribuir este software livremente, desde que mantenha os créditos e compartilhe as alterações sob a mesma licença.
+- Se você distribuir o Pudimbooru (ou um site baseado nele) para terceiros, deverá fornecer o código-fonte correspondente (o que é natural, já que se trata de código PHP interpretado).
+- Modificações feitas exclusivamente para o seu próprio site não precisam ser redistribuídas – elas pertencem a você.
