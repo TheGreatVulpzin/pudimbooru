@@ -20,7 +20,7 @@ final class FeaturedTest extends ShimmiePHPUnitTestCase
         self::assertSame(302, $page->code);
 
         self::get_page("post/list");
-        self::assert_text("Featured Post");
+        self::assert_text("Post em Destaque");
 
         # FIXME: test changing from one feature to another
 
@@ -33,6 +33,6 @@ final class FeaturedTest extends ShimmiePHPUnitTestCase
         // after deletion, there should be no feature
         $this->delete_post($image_id);
         self::get_page("post/list");
-        self::assert_no_text("Featured Post");
+        self::assert_no_text("Post em Destaque");
     }
 }

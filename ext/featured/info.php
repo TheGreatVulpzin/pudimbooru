@@ -8,7 +8,7 @@ final class FeaturedInfo extends ExtensionInfo
 {
     public const KEY = "featured";
 
-    public string $name = "Featured Post";
+    public string $name = "Post em Destaque";
     public array $authors = self::SHISH_AUTHOR;
     public string $description = "Bring a specific image to the users' attentions";
     public ?string $documentation =

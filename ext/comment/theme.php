@@ -101,7 +101,7 @@ class CommentListTheme extends Themelet
         foreach ($comments as $comment) {
             $html->appendChild($this->comment_to_html($comment, true));
         }
-        $html->appendChild(A(["class" => "more", "href" => make_link("comment/list")], "Full List"));
+        $html->appendChild(A(["class" => "more", "href" => make_link("comment/list")], "Lista Completa"));
         Ctx::$page->add_block(new Block("Comments", $html, "left", 70, "comment-list-recent"));
     }
 
@@ -288,7 +288,7 @@ class CommentListTheme extends Themelet
     public function get_comments_lock_editor_html(bool $comments_locked): HTMLElement
     {
         return SHM_POST_INFO(
-            "Comments Locked",
+            "Comentários Travados?",
             $comments_locked ? "Yes" : "No",
             Ctx::$user->can(CommentPermission::EDIT_COMMENT_LOCK) ? INPUT(["type" => "checkbox", "name" => "comments_locked", "checked" => $comments_locked]) : null
         );

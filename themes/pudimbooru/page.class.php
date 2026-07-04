@@ -121,7 +121,8 @@ class PudimbooruPage extends Page
             if (is_string($header) && $header !== "&nbsp;") {
                 $header = PudimbooruLocale::nav($header);
             }
-            $html->appendChild(H3(["data-toggle-sel" => "#{$block->id}", "class" => $hidable ? "shm-toggler" : ""], $header));
+            $toggle_target = $hidable ? "#{$block->id} .blockbody" : "#{$block->id}";
+            $html->appendChild(H3(["data-toggle-sel" => $toggle_target, "class" => $hidable ? "shm-toggler" : ""], $header));
         }
         $html->appendChild(DIV(['class' => "blockbody"], $block->body));
         return $html;

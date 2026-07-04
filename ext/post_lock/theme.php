@@ -13,7 +13,7 @@ class PostLockTheme extends Themelet
     public function get_lock_editor_html(Post $image): HTMLElement
     {
         return SHM_POST_INFO(
-            "Metadata Locked",
+            "Metadados Travados?",
             $image->is_locked() ? "Yes (Only admins may edit these details)" : "No",
             Ctx::$user->can(PostLockPermission::EDIT_IMAGE_LOCK) ? INPUT(["type" => "checkbox", "name" => "locked", "checked" => $image->is_locked()]) : null
         );

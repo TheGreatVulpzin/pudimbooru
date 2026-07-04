@@ -21,10 +21,10 @@ class RelationshipsTheme extends Themelet
                 : [];
             $html = emptyHTML(
                 $visible_siblings
-                    ? SPAN("This post has a parent and " . count($visible_siblings) . (count($visible_siblings) > 1 ? " siblings" : " sibling"))
-                    : SPAN("This post has a parent"),
+                    ? SPAN("Esse post tem um post pai e " . count($visible_siblings) . (count($visible_siblings) > 1 ? " posts irmãos" : " post irmão"))
+                    : SPAN("Esse post tem um post pai"),
                 " ",
-                A(["href" => "#", "class" => "shm-toggler", "data-toggle-sel" => ".shm-relationships-parent-thumbs"], "(Show/Hide)"),
+                A(["href" => "#", "class" => "shm-toggler", "data-toggle-sel" => ".shm-relationships-parent-thumbs"], "(Mostrar/Esconder)"),
                 DIV(
                     ["class" => "shm-relationships-parent-thumbs"],
                     DIV(["class" => "shm-parent-thumbs"], $this->build_thumb(Post::by_id_ex($image['parent_id']))),
@@ -39,10 +39,10 @@ class RelationshipsTheme extends Themelet
             if (!empty($visible_children)) {
                 $html = emptyHTML(
                     SPAN(
-                        "This post has ",
-                        A(["href" => search_link(['parent='.$image->id])], "child posts"),
+                        "Esse post tem ",
+                        A(["href" => search_link(['parent='.$image->id])], "posts filhos"),
                         " ",
-                        A(["href" => "#", "class" => "shm-toggler", "data-toggle-sel" => ".shm-relationships-child-thumbs"], "(Show/Hide)")
+                        A(["href" => "#", "class" => "shm-toggler", "data-toggle-sel" => ".shm-relationships-child-thumbs"], "(Mostrar/Esconder)")
                     ),
                     DIV(
                         ["class" => "shm-relationships-child-thumbs"],
@@ -57,7 +57,7 @@ class RelationshipsTheme extends Themelet
     public function get_parent_editor_html(Post $image): HTMLElement
     {
         return SHM_POST_INFO(
-            "Parent",
+            "Post Pai",
             (string)$image['parent_id'] ?: "None",
             Ctx::$user->can(RelationshipsPermission::EDIT_IMAGE_RELATIONSHIPS)
                 ? INPUT(["type" => "number", "name" => "parent", "value" => $image['parent_id']])

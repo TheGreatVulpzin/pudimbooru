@@ -123,7 +123,7 @@ class TagListTheme extends Themelet
             ),
             " ",
             BR(),
-            A(["class" => "more", "href" => make_link("tags")], "Full List")
+            A(["class" => "more", "href" => make_link("tags")], "Lista Completa")
         );
         Ctx::$page->add_block(new Block("Popular Tags", $main_html, "left", 60));
     }
@@ -142,7 +142,7 @@ class TagListTheme extends Themelet
             ),
             " ",
             BR(),
-            A(["class" => "more", "href" => make_link("tags")], "Full List")
+            A(["class" => "more", "href" => make_link("tags")], "Lista Completa")
         );
 
         Ctx::$page->add_block(new Block("Refine Search", $main_html, "left", 60));
