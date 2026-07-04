@@ -306,7 +306,7 @@ CODE {
 	right: 0;
 	padding: 0.15rem 0.35rem;
 	border-radius: 0 0 0 4px;
-	background: #1F6F8B;
+	background: #3D3228;
 	color: #FFF;
 	font-size: 0.68rem;
 	font-weight: bold;
@@ -315,17 +315,11 @@ CODE {
 }
 
 .shm-thumb-media-video .shm-thumb-media-badge {
-	background: #8A3FFC;
+	background: #3D3228;
 }
 
 .shm-thumb.bulk_selected {
 	outline-offset: 3px;
-}
-
-A.tag,
-.tag,
-[class*="tag_category_"] {
-	color: #3D3228 !important;
 }
 
 form {
