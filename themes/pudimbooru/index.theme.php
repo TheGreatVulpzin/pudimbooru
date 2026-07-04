@@ -6,11 +6,10 @@ namespace Shimmie2;
 
 require_once __DIR__ . '/locale.php';
 
+use function MicroHTML\{A, INPUT, P, SPAN, emptyHTML};
 use function MicroHTML\DIV;
 
 use MicroHTML\HTMLElement;
-
-use function MicroHTML\{A, INPUT, P, SPAN, emptyHTML};
 
 class PudimbooruIndexTheme extends IndexTheme
 {

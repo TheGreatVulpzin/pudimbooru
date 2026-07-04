@@ -118,7 +118,7 @@ class PudimbooruPage extends Page
         $html = SECTION(['id' => $block->id]);
         if (!empty($block->header)) {
             $header = ($block->header === "Posts") ? "&nbsp;" : $block->header;
-            if (is_string($header) && $header !== "&nbsp;") {
+            if ($header !== "&nbsp;") {
                 $header = PudimbooruLocale::nav($header);
             }
             $toggle_target = $hidable ? "#{$block->id} .blockbody" : "#{$block->id}";
