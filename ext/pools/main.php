@@ -495,8 +495,8 @@ final class Pools extends Extension
         $options = $database->get_pairs("SELECT id,title FROM pools ORDER BY title");
 
         // TODO: Don't cast into strings, make BABBE accept HTMLElement instead.
-        $event->add_action("pool-extend", "Add To (P)ool", "p", "", $this->theme->get_bulk_pool_selector($options), permission: PoolsPermission::UPDATE);
-        $event->add_action("pool-create", "Create Pool", "", "", $this->theme->get_bulk_pool_input($event->search_terms), permission: PoolsPermission::UPDATE);
+        $event->add_action("pool-extend", "Adicionar à (C)oleção", "c", "", $this->theme->get_bulk_pool_selector($options), permission: PoolsPermission::UPDATE);
+        $event->add_action("pool-create", "Criar Coleção", "", "", $this->theme->get_bulk_pool_input($event->search_terms), permission: PoolsPermission::UPDATE);
     }
 
     #[EventListener]

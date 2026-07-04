@@ -8,7 +8,7 @@ final class BulkActionsInfo extends ExtensionInfo
 {
     public const KEY = "bulk_actions";
 
-    public string $name = "Bulk Actions";
+    public string $name = "Ações em Massa";
     public array $authors = ["Matthew Barbour" => "mailto:matthew@darkholme.net"];
     public string $license = self::LICENSE_WTFPL;
     public string $description = "Provides query and selection-based bulk action support";

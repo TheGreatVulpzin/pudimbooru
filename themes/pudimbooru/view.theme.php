@@ -6,9 +6,9 @@ namespace Shimmie2;
 
 require_once __DIR__ . '/locale.php';
 
-use MicroHTML\HTMLElement;
-
 use function MicroHTML\{A, BR, DIV, INPUT, P, TABLE, TD, TR, emptyHTML, joinHTML};
+
+use MicroHTML\HTMLElement;
 
 class PudimbooruViewPostTheme extends ViewPostTheme
 {

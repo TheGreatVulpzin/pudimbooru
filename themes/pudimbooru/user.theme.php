@@ -7,9 +7,10 @@ namespace Shimmie2;
 require_once __DIR__ . '/locale.php';
 
 use function MicroHTML\{A, BR, INPUT, LABEL, P, SMALL, TABLE, TBODY, TD, TFOOT, TH, TR, emptyHTML, joinHTML};
-use function MicroHTML\rawHTML;
 
 use MicroHTML\HTMLElement;
+
+use function MicroHTML\rawHTML;
 
 class PudimbooruUserPageTheme extends UserPageTheme
 {
@@ -121,7 +122,7 @@ class PudimbooruUserPageTheme extends UserPageTheme
                     ) : null,
                 ),
                 TFOOT(
-                    TR(TD(["colspan" => "2"], INPUT(["type" => "submit", "value" => PudimbooruLocale::translate("Create Account")])) )
+                    TR(TD(["colspan" => "2"], INPUT(["type" => "submit", "value" => PudimbooruLocale::translate("Create Account")])))
                 )
             )
         );

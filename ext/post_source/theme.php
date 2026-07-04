@@ -23,7 +23,7 @@ class PostSourceTheme extends Themelet
     public function get_source_editor_html(Post $image): HTMLElement
     {
         return SHM_POST_INFO(
-            "Source Link",
+            "Link da Fonte",
             DIV(
                 ["style" => "overflow: hidden; white-space: nowrap; max-width: 350px; text-overflow: ellipsis;"],
                 $this->format_source($image->get_source())

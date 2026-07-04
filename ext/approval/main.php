@@ -92,7 +92,7 @@ final class Approval extends Extension
             if (!Ctx::$user->is_anonymous()) {
                 $count = $this->count_pending();
                 $h_count = $count > 0 ? " ($count)" : "";
-                $event->add_nav_link(search_link(['approved=no']), "Pending Approval$h_count", order: 60);
+                $event->add_nav_link(search_link(['approved=no']), "Aprovação Pendente$h_count", order: 60);
             }
         }
     }
@@ -103,7 +103,7 @@ final class Approval extends Extension
         if (!Ctx::$user->is_anonymous()) {
             $count = $this->count_pending();
             $h_count = $count > 0 ? " ($count)" : "";
-            $event->add_link("Pending Approval$h_count", search_link(["approved=no"]), 60);
+            $event->add_link("Aprovação Pendente$h_count", search_link(["approved=no"]), 60);
         }
     }
 

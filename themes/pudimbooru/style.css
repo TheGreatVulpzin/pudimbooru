@@ -357,6 +357,27 @@ TABLE.tag_list>TBODY>TR>TD:after {
 	color: var(--comment-meta);
 }
 
+.comment-avatar {
+	float: left;
+	margin: 0 8px 4px 0;
+	width: 48px;
+	height: 48px;
+	overflow: hidden;
+	border-radius: 4px;
+	background: var(--page);
+}
+
+.comment-avatar .avatar,
+.comment-avatar .avatar-container {
+	width: 48px;
+	height: 48px;
+}
+
+.comment-avatar .avatar {
+	object-fit: cover;
+	display: block;
+}
+
 .comment TD {
 	text-align: left;
 }

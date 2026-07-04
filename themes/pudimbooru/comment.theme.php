@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Shimmie2;
 
-use function MicroHTML\{A, B, BR, P, SPAN, TABLE, TD, TR, emptyHTML, joinHTML};
+use function MicroHTML\{A, B, BR, DIV, P, SPAN, TABLE, TD, TR, emptyHTML, joinHTML};
 
 use MicroHTML\HTMLElement;
 
@@ -96,6 +96,9 @@ class PudimbooruCommentListTheme extends CommentListTheme
         $h_posted = SHM_DATE($comment->posted);
 
         $h_userlink = A(["class" => "username", "href" => make_link("user/{$comment->owner->name}")], $comment->owner->name);
+        /** @var BuildAvatarEvent $bae */
+        $bae = send_event(new BuildAvatarEvent($comment->owner));
+        $avatar = $bae->html ? DIV(["class" => "comment-avatar"], $bae->html) : null;
         $actions = emptyHTML(
             Ctx::$user->can(IPBanPermission::VIEW_IP) ? emptyHTML(BR(), SHM_IP($comment->owner_ip, "Comentário em {$comment->posted}")) : null,
             Ctx::$user->can(CommentPermission::DELETE_COMMENT) ? emptyHTML(" - ", $this->delete_link($comment->id, $comment->image_id, $comment->owner->name, $tfe->stripped)) : null,
@@ -115,7 +118,7 @@ class PudimbooruCommentListTheme extends CommentListTheme
             return TABLE(
                 ["class" => "comment"],
                 TR(
-                    TD(["class" => "meta"], $h_userlink, BR(), $h_posted, $actions),
+                    TD(["class" => "meta"], $avatar, $h_userlink, BR(), $h_posted, $actions),
                     TD(["id" => "c$comment->id"], $h_comment)
                 )
             );

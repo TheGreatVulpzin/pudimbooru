@@ -19,15 +19,15 @@ class BulkActionsTheme extends Themelet
     {
         $header = emptyHTML(
             INPUT(["type" => "hidden", "name" => "bulk_selected_ids", "id" => "bulk_selected_ids"]),
-            INPUT(["type" => "button", "id" => "bulk_selector_activate", "onclick" => 'activate_bulk_selector();' , "value" => "Activate (M)anual Select", "accesskey" => "m"])
+            INPUT(["type" => "button", "id" => "bulk_selector_activate", "onclick" => 'activate_bulk_selector();' , "value" => "Ativar Seleção", "accesskey" => "m"])
         );
         $controls = emptyHTML(
-            INPUT(["type" => "button", "onclick" => 'deactivate_bulk_selector();' , "value" => "Deactivate (M)anual Select", "accesskey" => "m"]),
-            "Click on posts to mark them.",
+            INPUT(["type" => "button", "onclick" => 'deactivate_bulk_selector();' , "value" => "Desativar Seleção", "accesskey" => "m"]),
+            "Clique nos posts para marcá-los.",
             BR(),
-            INPUT(["type" => "button", "onclick" => 'select_all();' , "value" => "All"]),
-            INPUT(["type" => "button", "onclick" => 'select_invert();' , "value" => "Invert"]),
-            INPUT(["type" => "button", "onclick" => 'select_none();' , "value" => "Clear"])
+            INPUT(["type" => "button", "onclick" => 'select_all();' , "value" => "Todos"]),
+            INPUT(["type" => "button", "onclick" => 'select_invert();' , "value" => "Inverter"]),
+            INPUT(["type" => "button", "onclick" => 'select_none();' , "value" => "Limpar"])
         );
 
         $action_html = [];
@@ -61,7 +61,7 @@ class BulkActionsTheme extends Themelet
                 $actions
             );
         }
-        Ctx::$page->add_block(new Block("Bulk Actions", $html, "left", 30));
+        Ctx::$page->add_block(new Block("Ações em Massa", $html, "left", 30));
     }
 
     public function render_ban_reason_input(): ?HTMLElement

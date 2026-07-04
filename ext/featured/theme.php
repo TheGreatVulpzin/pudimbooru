@@ -10,7 +10,7 @@ class FeaturedTheme extends Themelet
 {
     public function display_featured(Post $image): void
     {
-        Ctx::$page->add_block(new Block("Featured Post", $this->build_featured_html($image), "left", 3));
+        Ctx::$page->add_block(new Block("Post em Destaque", $this->build_featured_html($image), "left", 3));
     }
 
     public function build_featured_html(Post $image): \MicroHTML\HTMLElement
