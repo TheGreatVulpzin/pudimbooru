@@ -9,7 +9,7 @@ final class VulpstileInfo extends ExtensionInfo
     public const KEY = "vulpstile";
 
     public string $name = "Vulpstile";
-    public array $authors = self::SHISH_AUTHOR;
+    public array $authors = ["Vulpzin" => null];
     public ExtensionCategory $category = ExtensionCategory::MODERATION;
-    public string $description = "Adds Vulpstile to various pages";
+    public string $description = "Adds Turnstile";
 }
