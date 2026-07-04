@@ -14,9 +14,10 @@ final class Captcha
             return null;
         }
 
-        if (Network::get_real_ip()->is_localhost()) {
-            return null;
-        }
+        // Temporarily allow captcha rendering on localhost for Turnstile testing.
+        // if (Network::get_real_ip()->is_localhost()) {
+        //     return null;
+        // }
 
         return send_event(new BuildCaptchaEvent())->html;
     }
@@ -27,9 +28,10 @@ final class Captcha
             return true;
         }
 
-        if (Network::get_real_ip()->is_localhost()) {
-            return true;
-        }
+        // Temporarily allow captcha validation on localhost for Turnstile testing.
+        // if (Network::get_real_ip()->is_localhost()) {
+        //     return true;
+        // }
 
         $passed = send_event(new CheckCaptchaEvent())->passed;
         if ($passed === null) {
