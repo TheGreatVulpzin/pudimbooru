@@ -38,6 +38,10 @@ class PudimbooruUserPageTheme extends UserPageTheme
         if (Ctx::$config->get(UserAccountsConfig::SIGNUP_ENABLED)) {
             $html->appendChild(SMALL(A(["href" => make_link("user_admin/create")], PudimbooruLocale::translate("Create Account"))));
         }
+        if (PasswordResetInfo::is_enabled() && Ctx::$user->can(PasswordResetPermission::REQUEST_PASSWORD_RESET)) {
+            $html->appendChild(BR());
+            $html->appendChild(SMALL(A(["href" => make_link("password_reset/request")], PudimbooruLocale::translate("Forgot your password?"))));
+        }
         Ctx::$page->add_block(new Block(PudimbooruLocale::translate("Login"), $html, "main", 90));
     }
 

@@ -107,6 +107,15 @@ final class Setup extends Extension
             $blocks = [];
             foreach (ConfigGroup::get_subclasses() as $class) {
                 $group = $class->newInstance();
+                if (class_exists(MailConfig::class) && $group instanceof MailConfig) {
+                    continue;
+                }
+                if (class_exists(MailToolConfigGroup::class) && $group instanceof MailToolConfigGroup) {
+                    continue;
+                }
+                if (class_exists(MailTemplateConfigGroup::class) && $group instanceof MailTemplateConfigGroup) {
+                    continue;
+                }
                 if ($group::is_enabled()) {
                     $block = $this->theme->config_group_to_block($config, $group);
                     if ($block) {

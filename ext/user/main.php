@@ -7,7 +7,7 @@ namespace Shimmie2;
 use GQLA\{Field, Mutation, Type};
 use MicroCRUD\{ActionColumn, DateColumn, EnumColumn, IntegerColumn, Table, TextColumn};
 
-use function MicroHTML\{A, P, emptyHTML};
+use function MicroHTML\{A, B, P, emptyHTML};
 
 use MicroHTML\HTMLElement;
 use Symfony\Component\Console\Input\InputOption;
@@ -34,9 +34,17 @@ final class UserActionColumn extends ActionColumn
     }
 }
 
+final class UserEmailVerifiedColumn extends TextColumn
+{
+    public function display(array $row): HTMLElement
+    {
+        return bool_escape($row[$this->name] ?? false) ? B("Sim") : emptyHTML("Não");
+    }
+}
+
 final class UserTable extends Table
 {
-    public function __construct(\FFSPHP\PDO $db)
+    public function __construct(\FFSPHP\PDO $db, bool $show_email_verified = false)
     {
         $classes = [];
         foreach (UserClass::$known_classes as $cls) {
@@ -52,6 +60,7 @@ final class UserTable extends Table
             new IntegerColumn("id", "ID"),
             new UserNameColumn("name", "Name"),
             new EnumColumn("class", "Class", $classes),
+            ...($show_email_verified && UserNotificationsInfo::is_enabled() ? [new UserEmailVerifiedColumn("email_verified", "Verificado")] : []),
             // Added later, for admins only
             // new TextColumn("email", "Email"),
             new DateColumn("joindate", "Join Date"),
@@ -190,6 +199,7 @@ final class UserPage extends Extension
             [
                 UserAccountsPermission::CREATE_USER => true,
                 UserAccountsPermission::SKIP_LOGIN_CAPTCHA => true,
+                PasswordResetPermission::REQUEST_PASSWORD_RESET => true,
             ],
             description: "The default class for people who are not logged in",
         );
@@ -228,6 +238,7 @@ final class UserPage extends Extension
                 ReportImagePermission::CREATE_IMAGE_REPORT => true,
                 TermsPermission::SKIP_TERMS => true,
                 UserAccountsPermission::CHANGE_USER_SETTING => true,
+                PasswordResetPermission::REQUEST_PASSWORD_RESET => true,
             ],
             description: "The default class for people who are logged in",
         );
@@ -294,7 +305,7 @@ final class UserPage extends Extension
             $page->flash("Created new user");
         }
         if ($event->page_matches("user_admin/list", method: "GET", permission: UserAccountsPermission::EDIT_USER_PASSWORD)) {
-            $t = new UserTable($database->raw_db());
+            $t = new UserTable($database->raw_db(), $user->class->name === "admin");
             $t->token = $user->get_auth_token();
             $t->inputs = $event->GET->toArray();
             if ($user->can(UserAccountsPermission::DELETE_USER)) {
@@ -329,8 +340,8 @@ final class UserPage extends Extension
                 if ($pass1 !== $pass2) {
                     throw new InvalidInput("Senhas não coincidem");
                 } else {
-                    // FIXME: send_event()
                     $duser->set_password($pass1);
+                    send_event(new UserPasswordChangedEvent($duser, $user));
                     if ($duser->id === $user->id) {
                         $duser->set_login_cookie();
                     }
@@ -343,8 +354,21 @@ final class UserPage extends Extension
             $duser = User::by_id(int_escape($event->POST->req('id')));
             $address = $event->POST->req('address');
             if ($this->user_can_edit_user($user, $duser)) {
-                $duser->set_email($address);
-                $page->flash("Email changed");
+                if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
+                    throw new InvalidInput("Endereço de e-mail inválido");
+                }
+                if ($duser->email === $address && $duser->email_verified) {
+                    $page->flash("Este e-mail já está verificado.");
+                } else {
+                    $emailEvent = send_event(new UserEmailChangedEvent($duser, $user, $duser->email, $address));
+                    if ($emailEvent->verificationRateLimited) {
+                        $page->flash("Aguarde 10 minutos antes de reenviar o e-mail de verificação.");
+                    } elseif ($emailEvent->verificationSent) {
+                        $page->flash("Enviamos um e-mail para você verificar a conta. O endereço só será alterado depois da confirmação.");
+                    } else {
+                        $page->flash("Não foi possível enviar o e-mail de verificação. Confira os logs do sistema.");
+                    }
+                }
                 $this->redirect_to_user($duser);
             }
         }
@@ -563,6 +587,9 @@ final class UserPage extends Extension
         }
 
         $event->set_user($new_user);
+        if ($new_user->email !== null && $new_user->email !== "") {
+            send_event(new UserEmailChangedEvent($new_user, Ctx::$user, null, $new_user->email, "user_creation"));
+        }
     }
 
     public const USER_SEARCH_REGEX = "/^(?:poster|user)(!?)[=:](.*)$/i";
@@ -649,12 +676,12 @@ final class UserPage extends Extension
 
     private function page_recover(string $username): void
     {
-        $my_user = User::by_name($username);
-        if (is_null($my_user->email)) {
-            throw new InvalidInput("That user has no registered email address");
-        } else {
-            throw new ServerError("Email sending not implemented");
+        if (PasswordResetInfo::is_enabled()) {
+            send_event(new PasswordResetRequestEvent($username));
+            return;
         }
+
+        throw new ServerError("Email sending not implemented");
     }
 
     private function user_can_edit_user(User $a, User $b): bool

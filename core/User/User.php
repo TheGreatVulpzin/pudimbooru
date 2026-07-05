@@ -20,6 +20,7 @@ final class User
     #[Field]
     public string $name;
     public ?string $email;
+    public bool $email_verified;
     #[Field]
     public string $join_date;
     public ?string $passhash;
@@ -49,6 +50,7 @@ final class User
         $this->id = int_escape((string)$row['id']);
         $this->name = $row['name'];
         $this->email = $row['email'];
+        $this->email_verified = bool_escape($row['email_verified'] ?? false);
         $this->join_date = $row['joindate'];
         $this->passhash = $row['pass'];
         $this->class = UserClass::get_class($row['class']);

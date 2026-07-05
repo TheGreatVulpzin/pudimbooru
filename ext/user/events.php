@@ -85,3 +85,30 @@ class UserDeletionEvent extends Event
         parent::__construct();
     }
 }
+
+class UserPasswordChangedEvent extends Event
+{
+    public function __construct(
+        public User $user,
+        public User $actor,
+        public string $source = "user_admin",
+    ) {
+        parent::__construct();
+    }
+}
+
+class UserEmailChangedEvent extends Event
+{
+    public bool $verificationSent = false;
+    public bool $verificationRateLimited = false;
+
+    public function __construct(
+        public User $user,
+        public User $actor,
+        public ?string $oldEmail,
+        public ?string $newEmail,
+        public string $source = "user_admin",
+    ) {
+        parent::__construct();
+    }
+}
