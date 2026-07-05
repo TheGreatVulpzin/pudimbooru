@@ -25,7 +25,7 @@ final class PoolsTest extends ShimmiePHPUnitTestCase
         self::log_out();
 
         self::get_page('pool/list');
-        self::assert_title("Pools");
+        self::assert_title(PudimbooruLocale::translate("Pools"));
 
         self::assertException(PermissionDenied::class, function () {
             self::get_page('pool/new');

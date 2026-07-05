@@ -13,7 +13,7 @@ final class UserPageTest extends ShimmiePHPUnitTestCase
 
         self::get_page('user/demo');
         self::assert_title("demo's Page");
-        self::assert_text("Joined:");
+        self::assert_text("Entrou:");
         self::assert_no_text("Operations");
 
         self::assertException(UserNotFound::class, function () {
