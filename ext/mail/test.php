@@ -24,6 +24,7 @@ final class MailTest extends ShimmiePHPUnitTestCase
     {
         Ctx::$config->set(MailConfig::FROM_ADDRESS, "admin@example.com");
         Ctx::$config->set(MailConfig::FROM_NAME, "Pudimbooru");
+        Ctx::$config->set(MailConfig::REPLY_TO_ADDRESS, "support@example.com");
 
         $event = new MailSendEvent(
             "user@example.com",
@@ -39,6 +40,28 @@ final class MailTest extends ShimmiePHPUnitTestCase
         self::assertSame("<p>HTML body</p>", $email->getHtmlBody());
         self::assertSame("admin@example.com", $email->getFrom()[0]->getAddress());
         self::assertSame("user@example.com", $email->getTo()[0]->getAddress());
+        self::assertSame("support@example.com", $email->getReplyTo()[0]->getAddress());
         self::assertSame("yes", $email->getHeaders()->get("X-Test")?->getBodyAsString());
+    }
+
+    public function testBuildEmailWithPerMessageSender(): void
+    {
+        Ctx::$config->set(MailConfig::FROM_ADDRESS, "admin@example.com");
+        Ctx::$config->set(MailConfig::FROM_NAME, "Pudimbooru");
+        Ctx::$config->set(MailConfig::REPLY_TO_ADDRESS, "support@example.com");
+
+        $event = new MailSendEvent(
+            "user@example.com",
+            "Subject",
+            "Text body",
+            fromAddress: "accounts@example.com",
+            fromName: "Accounts",
+            replyToAddress: "helpdesk@example.com"
+        );
+        $email = Mail::buildEmail($event);
+
+        self::assertSame("accounts@example.com", $email->getFrom()[0]->getAddress());
+        self::assertSame("Accounts", $email->getFrom()[0]->getName());
+        self::assertSame("helpdesk@example.com", $email->getReplyTo()[0]->getAddress());
     }
 }

@@ -111,10 +111,13 @@ final class PasswordReset extends Extension
         $textBody = strtr(Ctx::$config->get(PasswordResetEmailConfig::TEXT_BODY), $placeholders);
         $htmlBody = strtr(Ctx::$config->get(PasswordResetEmailConfig::HTML_BODY), $placeholders);
         $mail = send_event(new MailSendEvent(
-            $user->email,
-            $subject,
-            $textBody,
-            $htmlBody === "" ? null : $htmlBody
+            to: $user->email,
+            subject: $subject,
+            textBody: $textBody,
+            htmlBody: $htmlBody === "" ? null : $htmlBody,
+            fromAddress: Ctx::$config->get(PasswordResetEmailConfig::FROM_ADDRESS),
+            fromName: Ctx::$config->get(PasswordResetEmailConfig::FROM_NAME),
+            replyToAddress: Ctx::$config->get(PasswordResetEmailConfig::REPLY_TO_ADDRESS)
         ));
 
         if (!$mail->sent) {

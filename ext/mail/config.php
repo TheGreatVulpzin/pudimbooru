@@ -34,6 +34,9 @@ final class MailConfig extends ConfigGroup
     #[ConfigMeta("From name", ConfigType::STRING, default: "Pudimbooru", permission: MailPermission::MANAGE_MAIL_SETTINGS)]
     public const FROM_NAME = "mail_from_name";
 
+    #[ConfigMeta("Reply-To address", ConfigType::STRING, permission: MailPermission::MANAGE_MAIL_SETTINGS)]
+    public const REPLY_TO_ADDRESS = "mail_reply_to_address";
+
     #[ConfigMeta("Test recipient", ConfigType::STRING, advanced: true, permission: MailPermission::MANAGE_MAIL_SETTINGS)]
     public const TEST_RECIPIENT = "mail_test_recipient";
 }

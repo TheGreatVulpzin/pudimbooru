@@ -18,6 +18,9 @@ final class MailSendEvent extends Event
         public string $textBody,
         public ?string $htmlBody = null,
         public array $headers = [],
+        public ?string $fromAddress = null,
+        public ?string $fromName = null,
+        public ?string $replyToAddress = null,
     ) {
         parent::__construct();
     }

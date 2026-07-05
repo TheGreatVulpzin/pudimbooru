@@ -112,17 +112,22 @@ final class Mail extends Extension
 
     public static function buildEmail(MailSendEvent $event): Email
     {
-        $fromAddress = Ctx::$config->get(MailConfig::FROM_ADDRESS);
+        $fromAddress = $event->fromAddress ?: Ctx::$config->get(MailConfig::FROM_ADDRESS);
         if (!$fromAddress) {
             throw new ServerError("Mail from address is not configured");
         }
 
-        $fromName = Ctx::$config->get(MailConfig::FROM_NAME);
+        $fromName = $event->fromName ?: Ctx::$config->get(MailConfig::FROM_NAME);
+        $replyToAddress = $event->replyToAddress ?: Ctx::$config->get(MailConfig::REPLY_TO_ADDRESS);
         $email = (new Email())
             ->from(new Address($fromAddress, $fromName))
             ->to($event->to)
             ->subject($event->subject)
             ->text($event->textBody);
+
+        if ($replyToAddress !== null && $replyToAddress !== "") {
+            $email->replyTo($replyToAddress);
+        }
 
         if ($event->htmlBody !== null) {
             $email->html($event->htmlBody);
