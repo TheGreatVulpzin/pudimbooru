@@ -64,6 +64,46 @@ final class ApprovalTest extends ShimmiePHPUnitTestCase
         self::assert_search_results(["approved=no"], [$user_image_id], "Admin can see unapproved posts");
     }
 
+    public function testDeletingPendingPostClearsPendingCount(): void
+    {
+        self::log_in_as_user();
+        $image_id = $this->create_post("tests/pbx_screenshot.jpg", "pending_count");
+
+        self::log_in_as_admin();
+        Approval::disapprove_image($image_id);
+        $approval = new Approval();
+        self::assertSame(1, $approval->count_pending());
+
+        $this->delete_post($image_id);
+        self::assertSame(0, $approval->count_pending());
+    }
+
+    public function testTrashedPendingPostDoesNotCountAsPending(): void
+    {
+        self::log_in_as_user();
+        $image_id = $this->create_post("tests/pbx_screenshot.jpg", "trashed_pending_count");
+
+        self::log_in_as_admin();
+        Approval::disapprove_image($image_id);
+        $approval = new Approval();
+        self::assertSame(1, $approval->count_pending());
+
+        send_event(new PostDeletionEvent(Post::by_id_ex($image_id)));
+        self::assertSame(0, $approval->count_pending());
+    }
+
+    public function testTrashedPendingPostIsVisibleInTrash(): void
+    {
+        self::log_in_as_user();
+        $image_id = $this->create_post("tests/pbx_screenshot.jpg", "trashed_pending_visible");
+
+        self::log_in_as_admin();
+        Approval::disapprove_image($image_id);
+        send_event(new PostDeletionEvent(Post::by_id_ex($image_id)));
+
+        self::assert_search_results(["in=trash"], [$image_id], "Admin can find pending posts in trash");
+    }
+
     /**
      * Test that anonymous users cannot search for unapproved posts
      */
