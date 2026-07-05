@@ -44,7 +44,7 @@ final class UserEmailVerifiedColumn extends TextColumn
 
 final class UserTable extends Table
 {
-    public function __construct(\FFSPHP\PDO $db)
+    public function __construct(\FFSPHP\PDO $db, bool $show_email_verified = false)
     {
         $classes = [];
         foreach (UserClass::$known_classes as $cls) {
@@ -60,7 +60,7 @@ final class UserTable extends Table
             new IntegerColumn("id", "ID"),
             new UserNameColumn("name", "Name"),
             new EnumColumn("class", "Class", $classes),
-            ...UserNotificationsInfo::is_enabled() ? [new UserEmailVerifiedColumn("email_verified", "Verificado")] : [],
+            ...($show_email_verified && UserNotificationsInfo::is_enabled() ? [new UserEmailVerifiedColumn("email_verified", "Verificado")] : []),
             // Added later, for admins only
             // new TextColumn("email", "Email"),
             new DateColumn("joindate", "Join Date"),
@@ -305,7 +305,7 @@ final class UserPage extends Extension
             $page->flash("Created new user");
         }
         if ($event->page_matches("user_admin/list", method: "GET", permission: UserAccountsPermission::EDIT_USER_PASSWORD)) {
-            $t = new UserTable($database->raw_db());
+            $t = new UserTable($database->raw_db(), $user->class->name === "admin");
             $t->token = $user->get_auth_token();
             $t->inputs = $event->GET->toArray();
             if ($user->can(UserAccountsPermission::DELETE_USER)) {

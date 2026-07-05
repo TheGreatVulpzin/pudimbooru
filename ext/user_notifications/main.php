@@ -67,6 +67,11 @@ final class UserNotifications extends Extension
     #[EventListener]
     public function onUserPageBuilding(UserPageBuildingEvent $event): void
     {
+        $viewer = Ctx::$user;
+        if ($viewer->id !== $event->display_user->id && $viewer->class->name !== "admin") {
+            return;
+        }
+
         if ($event->display_user->email === null || $event->display_user->email === "") {
             $event->add_part(emptyHTML("Conta: Sem e-mail"), 20);
         } elseif ($event->display_user->email_verified) {
