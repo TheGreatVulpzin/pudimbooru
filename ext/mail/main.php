@@ -17,6 +17,7 @@ final class Mail extends Extension
     {
         if ($event->page_matches("mail_manager", method: "GET", permission: MailPermission::MANAGE_MAIL_SETTINGS)) {
             $blocks = [];
+            $toolBlocks = [];
             $groups = [new MailConfig()];
             foreach (MailTemplateConfigGroup::get_subclasses() as $class) {
                 $groups[] = $class->newInstance();
@@ -29,7 +30,16 @@ final class Mail extends Extension
                     }
                 }
             }
-            $this->theme->display_manager_page($blocks, Ctx::$config->get(MailConfig::TEST_RECIPIENT));
+            foreach (MailToolConfigGroup::get_subclasses() as $class) {
+                $group = $class->newInstance();
+                if ($group::is_enabled()) {
+                    $block = $this->theme->config_group_to_block(Ctx::$config, $group);
+                    if ($block !== null) {
+                        $toolBlocks[] = [$block, make_link($group->get_action_path()), $group->get_submit_label()];
+                    }
+                }
+            }
+            $this->theme->display_manager_page($blocks, $toolBlocks);
         }
 
         if ($event->page_matches("mail_manager/save", method: "POST", permission: MailPermission::MANAGE_MAIL_SETTINGS)) {
@@ -39,7 +49,10 @@ final class Mail extends Extension
         }
 
         if ($event->page_matches("mail/test", method: "POST", permission: MailPermission::MANAGE_MAIL_SETTINGS)) {
-            $to = $event->POST->req("to");
+            $to = trim((string)$event->POST->get("_config_" . MailTestToolConfig::TEST_RECIPIENT));
+            if ($to === "") {
+                throw new InvalidInput("Test recipient is required");
+            }
             $mail = send_event(new MailSendEvent(
                 $to,
                 "Pudimbooru mail test",
@@ -47,7 +60,7 @@ final class Mail extends Extension
             ));
 
             if ($mail->sent) {
-                Ctx::$config->set(MailConfig::TEST_RECIPIENT, $to);
+                Ctx::$config->set(MailTestToolConfig::TEST_RECIPIENT, $to);
                 Ctx::$page->flash("Test email sent");
             } else {
                 throw new ServerError($mail->error ?? "Unable to send test email");

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Shimmie2;
 
-use function MicroHTML\{A, DIV, H3, INPUT, SECTION, TABLE, TBODY, TD, TFOOT, TH, TR};
+use function MicroHTML\{A, DIV, H3, INPUT, SECTION};
 
 use MicroHTML\HTMLElement;
 
@@ -12,12 +12,17 @@ class MailTheme extends Themelet
 {
     /**
      * @param array<Block> $configBlocks
+     * @param array<array{0: Block, 1: Url, 2: string}> $toolBlocks
      */
-    public function display_manager_page(array $configBlocks, ?string $recipient): void
+    public function display_manager_page(array $configBlocks, array $toolBlocks): void
     {
         usort($configBlocks, Block::cmp(...));
+        usort($toolBlocks, fn ($a, $b) => Block::cmp($a[0], $b[0]));
 
         $blocks = DIV(["class" => "setupblocks"]);
+        foreach ($toolBlocks as [$block, $action, $submitLabel]) {
+            $blocks->appendChild($this->tool_block_to_section($block, $action, $submitLabel));
+        }
         foreach ($configBlocks as $block) {
             $blocks->appendChild($this->block_to_section($block));
         }
@@ -35,28 +40,21 @@ class MailTheme extends Themelet
         Ctx::$page->set_title("Gerenciador de E-mail");
         $this->display_navigation(extra: $nav);
         Ctx::$page->add_block(new Block(null, $form, id: "Setupmain"));
-        $this->display_test_block($recipient);
     }
 
-    public function display_test_block(?string $recipient): void
+    private function tool_block_to_section(Block $block, Url $action, string $submitLabel): HTMLElement
     {
-        $form = SHM_SIMPLE_FORM(
-            make_link("mail/test"),
-            TABLE(
-                ["class" => "form"],
-                TBODY(
-                    TR(
-                        TH("Recipient"),
-                        TD(INPUT(["type" => "email", "name" => "to", "value" => $recipient, "required" => true]))
-                    )
-                ),
-                TFOOT(
-                    TR(TD(["colspan" => 2], SHM_SUBMIT("Send test email")))
-                )
-            )
-        );
+        $body = DIV(["class" => "blockbody"], $block->body);
+        $body->appendChild(SHM_SUBMIT($submitLabel, [
+            "formaction" => $action,
+            "formmethod" => "post",
+        ]));
 
-        Ctx::$page->add_block(new Block("Mail Test", $form, "main", 80));
+        return SECTION(
+            ["class" => "setupblock"],
+            H3($block->header),
+            $body,
+        );
     }
 
     private function block_to_section(Block $block): HTMLElement

@@ -36,9 +36,33 @@ final class MailConfig extends ConfigGroup
 
     #[ConfigMeta("Reply-To address", ConfigType::STRING, permission: MailPermission::MANAGE_MAIL_SETTINGS)]
     public const REPLY_TO_ADDRESS = "mail_reply_to_address";
+}
 
-    #[ConfigMeta("Test recipient", ConfigType::STRING, advanced: true, permission: MailPermission::MANAGE_MAIL_SETTINGS)]
+abstract class MailToolConfigGroup extends ConfigGroup
+{
+    abstract public function get_action_path(): string;
+
+    abstract public function get_submit_label(): string;
+}
+
+final class MailTestToolConfig extends MailToolConfigGroup
+{
+    public const KEY = "mail";
+    public ?string $title = "Mail Test";
+    public ?int $position = 10;
+
+    #[ConfigMeta("Recipient", ConfigType::STRING, permission: MailPermission::MANAGE_MAIL_SETTINGS)]
     public const TEST_RECIPIENT = "mail_test_recipient";
+
+    public function get_action_path(): string
+    {
+        return "mail/test";
+    }
+
+    public function get_submit_label(): string
+    {
+        return "Send test email";
+    }
 }
 
 abstract class MailTemplateConfigGroup extends ConfigGroup
