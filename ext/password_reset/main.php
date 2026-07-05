@@ -129,7 +129,8 @@ final class PasswordReset extends Extension
         $row = $this->assertTokenUsable($token);
         $user = User::by_id((int)$row["user_id"]);
         $user->set_password($pass1);
-        $this->sendPasswordChangedEmail($user);
+        send_event(new UserPasswordChangedEvent($user, $user, "password_reset"));
+        $this->sendPasswordResetSuccessEmail($user);
         Ctx::$database->execute(
             "UPDATE password_reset_tokens SET used = :used WHERE id = :id",
             ["used" => true, "id" => $row["id"]]
@@ -192,20 +193,20 @@ final class PasswordReset extends Extension
         return $requests >= $maxRequests;
     }
 
-    private function sendPasswordChangedEmail(User $user): void
+    private function sendPasswordResetSuccessEmail(User $user): void
     {
         if ($user->email === null || $user->email === "") {
             return;
         }
 
-        $mail = MailTemplate::send(new PasswordChangedEmailConfig(), $user->email, [
+        $mail = MailTemplate::send(new PasswordResetSuccessEmailConfig(), $user->email, [
             '$usuario' => $user->name,
             '$username' => $user->name,
             '$site' => Ctx::$config->get(SetupConfig::TITLE),
         ]);
 
         if (!$mail->sent) {
-            Log::error("password_reset", "Password changed email failed for user #{$user->id}");
+            Log::error("password_reset", "Password reset success email failed for user #{$user->id}");
         }
     }
 

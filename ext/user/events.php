@@ -85,3 +85,14 @@ class UserDeletionEvent extends Event
         parent::__construct();
     }
 }
+
+class UserPasswordChangedEvent extends Event
+{
+    public function __construct(
+        public User $user,
+        public User $actor,
+        public string $source = "user_admin",
+    ) {
+        parent::__construct();
+    }
+}

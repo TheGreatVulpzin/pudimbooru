@@ -331,8 +331,8 @@ final class UserPage extends Extension
                 if ($pass1 !== $pass2) {
                     throw new InvalidInput("Senhas não coincidem");
                 } else {
-                    // FIXME: send_event()
                     $duser->set_password($pass1);
+                    send_event(new UserPasswordChangedEvent($duser, $user));
                     if ($duser->id === $user->id) {
                         $duser->set_login_cookie();
                     }
