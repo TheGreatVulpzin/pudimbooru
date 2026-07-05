@@ -157,7 +157,7 @@ final class PudimbooruLocale
         "Send reset email" => "Enviar e-mail de redefinição",
         "Choose New Password" => "Escolher Nova Senha",
         "New password" => "Nova senha",
-        "If the account exists and has an email address, a reset link has been sent." => "Se a conta existir e tiver um e-mail cadastrado, um link de redefinição foi enviado.",
+        "If the account exists and has an email address, a reset link has been sent. Please check your spam folder too." => "Se a conta existir e tiver um e-mail cadastrado, um link de redefinição foi enviado. Verifique também sua caixa de spam.",
         "Email" => "E-mail",
         "Email (optional)" => "E-mail (opcional)",
         "Uploaded from" => "Enviado de",

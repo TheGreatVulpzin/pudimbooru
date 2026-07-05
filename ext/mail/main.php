@@ -15,6 +15,32 @@ final class Mail extends Extension
     #[EventListener]
     public function onPageRequest(PageRequestEvent $event): void
     {
+        if ($event->page_matches("mail_manager", method: "GET", permission: MailPermission::MANAGE_MAIL_SETTINGS)) {
+            $blocks = [];
+            $groups = [new MailConfig()];
+            if (class_exists(PasswordResetConfig::class)) {
+                $groups[] = new PasswordResetConfig();
+            }
+            if (class_exists(PasswordResetEmailConfig::class)) {
+                $groups[] = new PasswordResetEmailConfig();
+            }
+            foreach ($groups as $group) {
+                if ($group::is_enabled()) {
+                    $block = $this->theme->config_group_to_block(Ctx::$config, $group);
+                    if ($block !== null) {
+                        $blocks[] = $block;
+                    }
+                }
+            }
+            $this->theme->display_manager_page($blocks, Ctx::$config->get(MailConfig::TEST_RECIPIENT));
+        }
+
+        if ($event->page_matches("mail_manager/save", method: "POST", permission: MailPermission::MANAGE_MAIL_SETTINGS)) {
+            send_event(new ConfigSaveEvent(Ctx::$config, ConfigSaveEvent::postToSettings($event->POST)));
+            Ctx::$page->flash("Mail settings saved");
+            Ctx::$page->set_redirect(Url::referer_or(make_link("mail_manager")));
+        }
+
         if ($event->page_matches("mail/test", method: "POST", permission: MailPermission::MANAGE_MAIL_SETTINGS)) {
             $to = $event->POST->req("to");
             $mail = send_event(new MailSendEvent(
@@ -29,15 +55,15 @@ final class Mail extends Extension
             } else {
                 throw new ServerError($mail->error ?? "Unable to send test email");
             }
-            Ctx::$page->set_redirect(make_link("admin"));
+            Ctx::$page->set_redirect(make_link("mail_manager"));
         }
     }
 
     #[EventListener]
-    public function onAdminBuilding(AdminBuildingEvent $event): void
+    public function onPageSubNavBuilding(PageSubNavBuildingEvent $event): void
     {
-        if (Ctx::$user->can(MailPermission::MANAGE_MAIL_SETTINGS)) {
-            $this->theme->display_test_block(Ctx::$config->get(MailConfig::TEST_RECIPIENT));
+        if ($event->parent === "system" && Ctx::$user->can(MailPermission::MANAGE_MAIL_SETTINGS)) {
+            $event->add_nav_link(make_link("mail_manager"), "Gerenciador de E-mail");
         }
     }
 

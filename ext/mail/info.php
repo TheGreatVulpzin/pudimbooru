@@ -10,6 +10,6 @@ final class MailInfo extends ExtensionInfo
 
     public string $name = "Mail";
     public array $authors = ["Vulpzin" => null];
-    public ExtensionCategory $category = ExtensionCategory::GENERAL;
+    public ExtensionCategory $category = ExtensionCategory::INTEGRATION;
     public string $description = "Provides reusable SMTP email delivery for other extensions";
 }

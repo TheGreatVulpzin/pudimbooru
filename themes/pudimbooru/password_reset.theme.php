@@ -61,7 +61,7 @@ class PudimbooruPasswordResetTheme extends PasswordResetTheme
         Ctx::$page->set_layout("no-left");
         Ctx::$page->add_block(new Block(
             PudimbooruLocale::translate("Reset Password"),
-            P(PudimbooruLocale::translate("If the account exists and has an email address, a reset link has been sent.")),
+            P(PudimbooruLocale::translate("If the account exists and has an email address, a reset link has been sent. Please check your spam folder too.")),
             "main",
             50
         ));

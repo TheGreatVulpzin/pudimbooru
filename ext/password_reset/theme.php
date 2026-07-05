@@ -56,7 +56,7 @@ class PasswordResetTheme extends Themelet
         Ctx::$page->set_title("Reset Password");
         Ctx::$page->add_block(new Block(
             "Reset Password",
-            P("If the account exists and has an email address, a reset link has been sent."),
+            P("If the account exists and has an email address, a reset link has been sent. Please check your spam folder too."),
             "main",
             50
         ));

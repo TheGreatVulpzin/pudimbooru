@@ -9,7 +9,7 @@ final class PasswordReset extends Extension
 {
     public const KEY = "password_reset";
 
-    private const GENERIC_MESSAGE = "If the account exists and has an email address, a reset link has been sent.";
+    private const GENERIC_MESSAGE = "If the account exists and has an email address, a reset link has been sent. Please check your spam folder too.";
 
     #[EventListener]
     public function onDatabaseUpgrade(DatabaseUpgradeEvent $event): void
@@ -101,10 +101,20 @@ final class PasswordReset extends Extension
         );
 
         $link = (string)make_link("password_reset/reset", ["token" => $token])->asAbsolute();
+        $placeholders = [
+            '$link' => $link,
+            '$usuario' => $user->name,
+            '$username' => $user->name,
+            '$site' => Ctx::$config->get(SetupConfig::TITLE),
+        ];
+        $subject = strtr(Ctx::$config->get(PasswordResetEmailConfig::SUBJECT), $placeholders);
+        $textBody = strtr(Ctx::$config->get(PasswordResetEmailConfig::TEXT_BODY), $placeholders);
+        $htmlBody = strtr(Ctx::$config->get(PasswordResetEmailConfig::HTML_BODY), $placeholders);
         $mail = send_event(new MailSendEvent(
             $user->email,
-            "Reset your Pudimbooru password",
-            "Use this link to reset your password:\n\n$link\n\nIf you did not request this, ignore this email."
+            $subject,
+            $textBody,
+            $htmlBody === "" ? null : $htmlBody
         ));
 
         if (!$mail->sent) {
