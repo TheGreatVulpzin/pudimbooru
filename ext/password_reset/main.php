@@ -87,6 +87,12 @@ final class PasswordReset extends Extension
             return;
         }
 
+        $requestIp = (string)Network::get_real_ip();
+        if ($this->isRateLimited($user, $requestIp)) {
+            Log::warning("password_reset", "Password reset rate limited for user #{$user->id} from $requestIp");
+            return;
+        }
+
         $token = bin2hex(random_bytes(32));
         $hash = self::hashToken($token);
         $expires = date("Y-m-d H:i:s", time() + 60 * Ctx::$config->get(PasswordResetConfig::TOKEN_LIFETIME));
@@ -96,7 +102,7 @@ final class PasswordReset extends Extension
                 "user_id" => $user->id,
                 "token_hash" => $hash,
                 "expires" => $expires,
-                "request_ip" => (string)Network::get_real_ip(),
+                "request_ip" => $requestIp,
             ]
         );
 
@@ -162,6 +168,27 @@ final class PasswordReset extends Extension
             ["login" => $login]
         );
         return $row === null ? null : new User($row);
+    }
+
+    private function isRateLimited(User $user, string $requestIp): bool
+    {
+        $maxRequests = Ctx::$config->get(PasswordResetConfig::RATE_LIMIT_COUNT);
+        if ($maxRequests <= 0) {
+            return false;
+        }
+
+        $windowMinutes = max(1, Ctx::$config->get(PasswordResetConfig::RATE_LIMIT_WINDOW));
+        $cutoff = date("Y-m-d H:i:s", time() - 60 * $windowMinutes);
+        $requests = Ctx::$database->get_one(
+            "SELECT COUNT(*) FROM password_reset_tokens WHERE created >= :cutoff AND (user_id = :user_id OR request_ip = :request_ip)",
+            [
+                "cutoff" => $cutoff,
+                "user_id" => $user->id,
+                "request_ip" => $requestIp,
+            ]
+        );
+
+        return $requests >= $maxRequests;
     }
 
     private static function hashToken(string $token): string

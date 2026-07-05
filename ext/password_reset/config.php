@@ -11,6 +11,12 @@ final class PasswordResetConfig extends ConfigGroup
 
     #[ConfigMeta("Token lifetime (minutes)", ConfigType::INT, default: 60, advanced: true)]
     public const TOKEN_LIFETIME = "password_reset_token_lifetime";
+
+    #[ConfigMeta("Max reset requests", ConfigType::INT, default: 3, help: "Maximum password reset emails per account or IP inside the rate limit window. Use 0 to disable.")]
+    public const RATE_LIMIT_COUNT = "password_reset_rate_limit_count";
+
+    #[ConfigMeta("Rate limit window (minutes)", ConfigType::INT, default: 60)]
+    public const RATE_LIMIT_WINDOW = "password_reset_rate_limit_window";
 }
 
 final class PasswordResetEmailConfig extends MailTemplateConfigGroup

@@ -54,6 +54,18 @@ final class PasswordResetTest extends ShimmiePHPUnitTestCase
         });
     }
 
+    public function testRateLimitBlocksExtraTokens(): void
+    {
+        $user = User::by_name(self::USER_NAME);
+        Ctx::$config->set(PasswordResetConfig::RATE_LIMIT_COUNT, 1);
+        Ctx::$config->set(PasswordResetConfig::RATE_LIMIT_WINDOW, 60);
+        $this->insertToken($user, "existing-token", date("Y-m-d H:i:s", time() + 3600));
+
+        (new PasswordReset())->requestReset(self::USER_NAME);
+
+        self::assertSame(1, Ctx::$database->get_one("SELECT COUNT(*) FROM password_reset_tokens"));
+    }
+
     private function insertToken(User $user, string $token, string $expires): void
     {
         Ctx::$database->execute(
