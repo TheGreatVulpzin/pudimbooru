@@ -354,11 +354,21 @@ final class UserPage extends Extension
             $duser = User::by_id(int_escape($event->POST->req('id')));
             $address = $event->POST->req('address');
             if ($this->user_can_edit_user($user, $duser)) {
-                $old_email = $duser->email;
-                $duser->set_email($address);
-                $duser = User::by_id($duser->id);
-                send_event(new UserEmailChangedEvent($duser, $user, $old_email, $duser->email));
-                $page->flash("Email changed. Enviamos um email para você verificar a conta.");
+                if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
+                    throw new InvalidInput("Endereço de e-mail inválido");
+                }
+                if ($duser->email === $address && $duser->email_verified) {
+                    $page->flash("Este e-mail já está verificado.");
+                } else {
+                    $emailEvent = send_event(new UserEmailChangedEvent($duser, $user, $duser->email, $address));
+                    if ($emailEvent->verificationRateLimited) {
+                        $page->flash("Aguarde 10 minutos antes de reenviar o e-mail de verificação.");
+                    } elseif ($emailEvent->verificationSent) {
+                        $page->flash("Enviamos um e-mail para você verificar a conta. O endereço só será alterado depois da confirmação.");
+                    } else {
+                        $page->flash("Não foi possível enviar o e-mail de verificação. Confira os logs do sistema.");
+                    }
+                }
                 $this->redirect_to_user($duser);
             }
         }

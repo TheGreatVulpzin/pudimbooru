@@ -42,21 +42,24 @@ final class UserNotifications extends Extension
     {
         if ($event->page_matches("user_notifications/verify_email", method: "GET", authed: false)) {
             $this->verifyEmail($event->GET->req("token"));
-            Ctx::$page->flash("Email verified");
+            Ctx::$page->flash("E-mail verificado");
             Ctx::$page->set_redirect(Ctx::$user->is_anonymous() ? make_link("user_admin/login") : make_link("user"));
         }
 
         if ($event->page_matches("user_notifications/send_verification", method: "POST")) {
             if (Ctx::$user->email === null || Ctx::$user->email === "") {
-                throw new InvalidInput("No email address to verify");
+                throw new InvalidInput("Nenhum endereço de e-mail para verificar");
             }
-            if (!$this->canSendVerificationEmail(Ctx::$user)) {
-                Ctx::$page->flash("Aguarde 10 minutos antes de reenviar o email de verificação.");
+            if (!$this->canSendVerificationEmail(Ctx::$user, Ctx::$user->email)) {
+                Ctx::$page->flash("Aguarde 10 minutos antes de reenviar o e-mail de verificação.");
                 Ctx::$page->set_redirect(make_link("user"));
                 return;
             }
-            $this->sendVerificationEmail(Ctx::$user);
-            Ctx::$page->flash("Verification email sent");
+            if ($this->sendVerificationEmail(Ctx::$user, Ctx::$user->email)) {
+                Ctx::$page->flash("E-mail de verificação enviado.");
+            } else {
+                Ctx::$page->flash("Não foi possível enviar o e-mail de verificação. Confira os logs do sistema.");
+            }
             Ctx::$page->set_redirect(make_link("user"));
         }
     }
@@ -65,11 +68,11 @@ final class UserNotifications extends Extension
     public function onUserPageBuilding(UserPageBuildingEvent $event): void
     {
         if ($event->display_user->email === null || $event->display_user->email === "") {
-            $event->add_part(emptyHTML("Conta: Sem email"), 20);
+            $event->add_part(emptyHTML("Conta: Sem e-mail"), 20);
         } elseif ($event->display_user->email_verified) {
             $event->add_part(emptyHTML("Conta: ", B("Verificada")), 20);
         } else {
-            $event->add_part(emptyHTML("Conta: Email não verificado"), 20);
+            $event->add_part(emptyHTML("Conta: E-mail não verificado"), 20);
         }
     }
 
@@ -81,10 +84,10 @@ final class UserNotifications extends Extension
         }
 
         $event->add_part(emptyHTML(
-            P("Seu email ainda não foi verificado."),
+            P("Seu e-mail ainda não foi verificado."),
             SHM_SIMPLE_FORM(
                 make_link("user_notifications/send_verification"),
-                SHM_SUBMIT("Reenviar verificação de email")
+                SHM_SUBMIT("Reenviar verificação de e-mail")
             )
         ), 25);
     }
@@ -120,41 +123,35 @@ final class UserNotifications extends Extension
             return;
         }
 
-        $this->setEmailVerified($event->user, false);
-        $event->user->email_verified = false;
-        Log::info("user_notifications", "Email changed for user #{$event->user->id}");
-
-        if ($event->oldEmail !== null && $event->oldEmail !== "" && $event->oldEmail !== $event->newEmail) {
-            $mail = MailTemplate::send(new UserEmailChangedOldEmailConfig(), $event->oldEmail, [
-                'username' => $event->user->name,
-                'site' => Ctx::$config->get(SetupConfig::TITLE),
-                'old_email' => $event->oldEmail,
-                'new_email' => $event->newEmail ?? "",
-                'actor' => $event->actor->name,
-            ]);
-
-            if (!$mail->sent) {
-                Log::error("user_notifications", "Email change notice failed for user #{$event->user->id}");
-            } else {
-                Log::info("user_notifications", "Email change notice sent for user #{$event->user->id}");
-            }
+        if ($event->newEmail === null || $event->newEmail === "") {
+            return;
         }
 
-        if ($event->newEmail !== null && $event->newEmail !== "") {
-            $this->sendVerificationEmail($event->user);
+        if ($event->source === "user_creation") {
+            $this->setEmailVerified($event->user, false);
+            $event->user->email_verified = false;
         }
+
+        if (!$this->canSendVerificationEmail($event->user, $event->newEmail)) {
+            $event->verificationRateLimited = true;
+            Log::info("user_notifications", "Email verification cooldown for user #{$event->user->id}");
+            return;
+        }
+
+        $event->verificationSent = $this->sendVerificationEmail($event->user, $event->newEmail);
+        Log::info("user_notifications", "Email verification pending for user #{$event->user->id}");
     }
 
-    private function sendVerificationEmail(User $user): void
+    private function sendVerificationEmail(User $user, string $email): bool
     {
-        if ($user->email === null || $user->email === "") {
-            return;
+        if ($email === "") {
+            return false;
         }
 
         $this->deleteExpiredTokens();
         Ctx::$database->execute(
-            "UPDATE user_email_verification_tokens SET used = :used WHERE user_id = :user_id AND used = :unused",
-            ["used" => true, "unused" => false, "user_id" => $user->id]
+            "UPDATE user_email_verification_tokens SET used = :used WHERE user_id = :user_id AND email = :email AND used = :unused",
+            ["used" => true, "unused" => false, "user_id" => $user->id, "email" => $email]
         );
 
         $token = bin2hex(random_bytes(32));
@@ -163,14 +160,14 @@ final class UserNotifications extends Extension
             "INSERT INTO user_email_verification_tokens (user_id, email, token_hash, expires) VALUES (:user_id, :email, :token_hash, :expires)",
             [
                 "user_id" => $user->id,
-                "email" => $user->email,
+                "email" => $email,
                 "token_hash" => self::hashToken($token),
                 "expires" => $expires,
             ]
         );
 
         $link = (string)make_link("user_notifications/verify_email", ["token" => $token])->asAbsolute();
-        $mail = MailTemplate::send(new UserEmailVerificationEmailConfig(), $user->email, [
+        $mail = MailTemplate::send(new UserEmailVerificationEmailConfig(), $email, [
             'username' => $user->name,
             'site' => Ctx::$config->get(SetupConfig::TITLE),
             'verification_link' => $link,
@@ -178,19 +175,21 @@ final class UserNotifications extends Extension
 
         if (!$mail->sent) {
             Log::error("user_notifications", "Email verification failed for user #{$user->id}");
+            return false;
         } else {
             Log::info("user_notifications", "Email verification sent for user #{$user->id}");
+            return true;
         }
     }
 
-    private function canSendVerificationEmail(User $user): bool
+    private function canSendVerificationEmail(User $user, string $email): bool
     {
         $cutoff = date("Y-m-d H:i:s", time() - 60 * self::VERIFICATION_RESEND_COOLDOWN_MINUTES);
         $recent = Ctx::$database->get_one(
             "SELECT COUNT(*) FROM user_email_verification_tokens WHERE user_id = :user_id AND email = :email AND used = :used AND created >= :cutoff",
             [
                 "user_id" => $user->id,
-                "email" => $user->email,
+                "email" => $email,
                 "used" => false,
                 "cutoff" => $cutoff,
             ]
@@ -209,12 +208,18 @@ final class UserNotifications extends Extension
         );
 
         if ($row === null || !hash_equals((string)$row["token_hash"], $hash)) {
-            throw new InvalidInput("Invalid or expired email verification link");
+            throw new InvalidInput("Link de verificação de e-mail inválido ou expirado");
         }
 
         $user = User::by_id((int)$row["user_id"]);
-        if ($user->email !== (string)$row["email"]) {
-            throw new InvalidInput("Invalid or expired email verification link");
+        $email = (string)$row["email"];
+        $oldEmail = $user->email;
+        if ($oldEmail !== $email) {
+            $user->set_email($email);
+            $user = User::by_id($user->id);
+            if ($oldEmail !== null && $oldEmail !== "") {
+                $this->sendEmailChangedOldAddressNotice($user, $oldEmail, $email);
+            }
         }
 
         $this->setEmailVerified($user, true);
@@ -223,6 +228,23 @@ final class UserNotifications extends Extension
             ["used" => true, "id" => $row["id"]]
         );
         Log::info("user_notifications", "Verified email for user #{$user->id}");
+    }
+
+    private function sendEmailChangedOldAddressNotice(User $user, string $oldEmail, string $newEmail): void
+    {
+        $mail = MailTemplate::send(new UserEmailChangedOldEmailConfig(), $oldEmail, [
+            'username' => $user->name,
+            'site' => Ctx::$config->get(SetupConfig::TITLE),
+            'old_email' => $oldEmail,
+            'new_email' => $newEmail,
+            'actor' => $user->name,
+        ]);
+
+        if (!$mail->sent) {
+            Log::error("user_notifications", "Email change notice failed for user #{$user->id}");
+        } else {
+            Log::info("user_notifications", "Email change notice sent for user #{$user->id}");
+        }
     }
 
     private function setEmailVerified(User $user, bool $verified): void

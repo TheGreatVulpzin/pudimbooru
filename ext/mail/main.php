@@ -34,9 +34,8 @@ final class Mail extends Extension
                 $group = $class->newInstance();
                 if ($group::is_enabled()) {
                     $block = $this->theme->config_group_to_block(Ctx::$config, $group);
-                    if ($block !== null) {
-                        $toolBlocks[] = [$block, make_link($group->get_action_path()), $group->get_submit_label()];
-                    }
+                    $block ??= new Block($group->get_title(), \MicroHTML\emptyHTML(), "main", $group->position ?? 50);
+                    $toolBlocks[] = [$block, make_link($group->get_action_path()), $group->get_submit_label()];
                 }
             }
             $this->theme->display_manager_page($blocks, $toolBlocks);
@@ -64,6 +63,42 @@ final class Mail extends Extension
                 Ctx::$page->flash("Test email sent");
             } else {
                 throw new ServerError($mail->error ?? "Unable to send test email");
+            }
+            Ctx::$page->set_redirect(make_link("mail_manager"));
+        }
+
+        if ($event->page_matches("mail/check_smtp", method: "POST", permission: MailPermission::MANAGE_MAIL_SETTINGS)) {
+            try {
+                $transport = Transport::fromDsn(self::buildDsn());
+                if (method_exists($transport, "start")) {
+                    $transport->start();
+                }
+                Ctx::$page->flash("SMTP connection OK");
+                Log::info("mail", "SMTP connection check succeeded");
+            } catch (\Throwable $ex) {
+                Log::error("mail", "SMTP connection check failed: {$ex->getMessage()}");
+                throw new ServerError("SMTP connection failed: {$ex->getMessage()}");
+            }
+            Ctx::$page->set_redirect(make_link("mail_manager"));
+        }
+
+        if ($event->page_matches("mail/test_template", method: "POST", permission: MailPermission::MANAGE_MAIL_SETTINGS)) {
+            $to = trim((string)$event->POST->get("_config_" . MailTemplateTestToolConfig::RECIPIENT));
+            $templatePrefix = trim((string)$event->POST->get("_config_" . MailTemplateTestToolConfig::TEMPLATE));
+            if ($to === "") {
+                throw new InvalidInput("Template test recipient is required");
+            }
+
+            $template = self::getTemplateByPrefix($templatePrefix);
+            $mail = MailTemplate::send($template, $to, self::samplePlaceholders($template));
+
+            if ($mail->sent) {
+                Ctx::$config->set(MailTemplateTestToolConfig::RECIPIENT, $to);
+                Ctx::$config->set(MailTemplateTestToolConfig::TEMPLATE, $templatePrefix);
+                Ctx::$page->flash("Template test email sent");
+                Log::info("mail", "Template test email sent to $to using $templatePrefix");
+            } else {
+                throw new ServerError($mail->error ?? "Unable to send template test email");
             }
             Ctx::$page->set_redirect(make_link("mail_manager"));
         }
@@ -148,6 +183,40 @@ final class Mail extends Extension
         }
 
         return $email;
+    }
+
+    private static function getTemplateByPrefix(string $prefix): MailTemplateConfigGroup
+    {
+        foreach (MailTemplateConfigGroup::get_subclasses() as $class) {
+            $group = $class->newInstance();
+            if ($group::is_enabled() && $group->get_template_prefix() === $prefix) {
+                return $group;
+            }
+        }
+        throw new InvalidInput("Unknown mail template");
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function samplePlaceholders(MailTemplateConfigGroup $template): array
+    {
+        $samples = [
+            "actor" => Ctx::$user->name,
+            "link" => (string)make_link()->asAbsolute(),
+            "new_email" => "novo-email@example.com",
+            "old_email" => "email-antigo@example.com",
+            "site" => Ctx::$config->get(SetupConfig::TITLE),
+            "username" => "usuario_teste",
+            "verification_link" => (string)make_link("user_notifications/verify_email", ["token" => "token-de-teste"])->asAbsolute(),
+        ];
+
+        $placeholders = [];
+        foreach ($template->get_placeholders() as $placeholder) {
+            $name = trim($placeholder, "{}$");
+            $placeholders[$name] = $samples[$name] ?? "valor_$name";
+        }
+        return $placeholders;
     }
 }
 

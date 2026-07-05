@@ -99,6 +99,9 @@ class UserPasswordChangedEvent extends Event
 
 class UserEmailChangedEvent extends Event
 {
+    public bool $verificationSent = false;
+    public bool $verificationRateLimited = false;
+
     public function __construct(
         public User $user,
         public User $actor,

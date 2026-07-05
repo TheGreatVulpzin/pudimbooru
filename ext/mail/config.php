@@ -65,6 +65,66 @@ final class MailTestToolConfig extends MailToolConfigGroup
     }
 }
 
+final class MailSmtpCheckToolConfig extends MailToolConfigGroup
+{
+    public const KEY = "mail";
+    public ?string $title = "SMTP Check";
+    public ?int $position = 11;
+
+    public function get_config_fields(): array
+    {
+        return [];
+    }
+
+    public function get_action_path(): string
+    {
+        return "mail/check_smtp";
+    }
+
+    public function get_submit_label(): string
+    {
+        return "Check SMTP";
+    }
+}
+
+final class MailTemplateTestToolConfig extends MailToolConfigGroup
+{
+    public const KEY = "mail";
+    public ?string $title = "Template Test";
+    public ?int $position = 12;
+
+    #[ConfigMeta("Recipient", ConfigType::STRING, permission: MailPermission::MANAGE_MAIL_SETTINGS)]
+    public const RECIPIENT = "mail_template_test_recipient";
+
+    #[ConfigMeta("Template", ConfigType::STRING, options: self::class . "::get_template_options", permission: MailPermission::MANAGE_MAIL_SETTINGS)]
+    public const TEMPLATE = "mail_template_test_template";
+
+    /**
+     * @return array<string, string>
+     */
+    public static function get_template_options(): array
+    {
+        $options = [];
+        foreach (MailTemplateConfigGroup::get_subclasses() as $class) {
+            $group = $class->newInstance();
+            if ($group::is_enabled()) {
+                $options[$group->get_title()] = $group->get_template_prefix();
+            }
+        }
+        return $options;
+    }
+
+    public function get_action_path(): string
+    {
+        return "mail/test_template";
+    }
+
+    public function get_submit_label(): string
+    {
+        return "Send template test";
+    }
+}
+
 abstract class MailTemplateConfigGroup extends ConfigGroup
 {
     abstract public function get_template_prefix(): string;
