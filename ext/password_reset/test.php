@@ -82,7 +82,6 @@ final class PasswordResetTest extends ShimmiePHPUnitTestCase
     private static function hashToken(string $token): string
     {
         $method = new \ReflectionMethod(PasswordReset::class, "hashToken");
-        $method->setAccessible(true);
         return $method->invoke(null, $token);
     }
 }
