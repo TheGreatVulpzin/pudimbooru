@@ -107,18 +107,7 @@ final class PasswordReset extends Extension
             '$username' => $user->name,
             '$site' => Ctx::$config->get(SetupConfig::TITLE),
         ];
-        $subject = strtr(Ctx::$config->get(PasswordResetEmailConfig::SUBJECT), $placeholders);
-        $textBody = strtr(Ctx::$config->get(PasswordResetEmailConfig::TEXT_BODY), $placeholders);
-        $htmlBody = strtr(Ctx::$config->get(PasswordResetEmailConfig::HTML_BODY), $placeholders);
-        $mail = send_event(new MailSendEvent(
-            to: $user->email,
-            subject: $subject,
-            textBody: $textBody,
-            htmlBody: $htmlBody === "" ? null : $htmlBody,
-            fromAddress: Ctx::$config->get(PasswordResetEmailConfig::FROM_ADDRESS),
-            fromName: Ctx::$config->get(PasswordResetEmailConfig::FROM_NAME),
-            replyToAddress: Ctx::$config->get(PasswordResetEmailConfig::REPLY_TO_ADDRESS)
-        ));
+        $mail = MailTemplate::send(new PasswordResetEmailConfig(), $user->email, $placeholders);
 
         if (!$mail->sent) {
             Log::error("password_reset", "Password reset email failed for user #{$user->id}");

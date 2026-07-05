@@ -18,11 +18,8 @@ final class Mail extends Extension
         if ($event->page_matches("mail_manager", method: "GET", permission: MailPermission::MANAGE_MAIL_SETTINGS)) {
             $blocks = [];
             $groups = [new MailConfig()];
-            if (class_exists(PasswordResetConfig::class)) {
-                $groups[] = new PasswordResetConfig();
-            }
-            if (class_exists(PasswordResetEmailConfig::class)) {
-                $groups[] = new PasswordResetEmailConfig();
+            foreach (MailTemplateConfigGroup::get_subclasses() as $class) {
+                $groups[] = $class->newInstance();
             }
             foreach ($groups as $group) {
                 if ($group::is_enabled()) {
@@ -138,5 +135,65 @@ final class Mail extends Extension
         }
 
         return $email;
+    }
+}
+
+final class MailTemplate
+{
+    /**
+     * @param array<string, string> $placeholders
+     * @param array<string, string> $headers
+     */
+    public static function send(MailTemplateConfigGroup $template, string $to, array $placeholders, array $headers = []): MailSendEvent
+    {
+        $event = new MailSendEvent(
+            to: $to,
+            subject: self::render(self::requiredConfigString($template->get_subject_key()), $placeholders),
+            textBody: self::render(self::requiredConfigString($template->get_text_body_key()), $placeholders),
+            htmlBody: self::html(self::requiredConfigString($template->get_html_body_key()), $placeholders),
+            headers: $headers,
+            fromAddress: self::optionalConfigString($template->get_from_address_key()),
+            fromName: self::optionalConfigString($template->get_from_name_key()),
+            replyToAddress: self::optionalConfigString($template->get_reply_to_address_key()),
+        );
+        return send_event($event);
+    }
+
+    /**
+     * @param array<string, string> $placeholders
+     */
+    private static function render(string $template, array $placeholders): string
+    {
+        return strtr($template, $placeholders);
+    }
+
+    /**
+     * @param array<string, string> $placeholders
+     */
+    private static function html(string $template, array $placeholders): ?string
+    {
+        $html = self::render($template, $placeholders);
+        return $html === "" ? null : $html;
+    }
+
+    private static function requiredConfigString(string $key): string
+    {
+        $value = Ctx::$config->get($key);
+        if (is_string($value)) {
+            return $value;
+        }
+        throw new ServerError("Mail template config '$key' is invalid");
+    }
+
+    private static function optionalConfigString(string $key): ?string
+    {
+        $value = Ctx::$config->get($key);
+        if ($value === null || $value === "") {
+            return null;
+        }
+        if (is_string($value)) {
+            return $value;
+        }
+        throw new ServerError("Mail template config '$key' is invalid");
     }
 }

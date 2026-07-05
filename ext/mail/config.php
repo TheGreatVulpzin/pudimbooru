@@ -40,3 +40,66 @@ final class MailConfig extends ConfigGroup
     #[ConfigMeta("Test recipient", ConfigType::STRING, advanced: true, permission: MailPermission::MANAGE_MAIL_SETTINGS)]
     public const TEST_RECIPIENT = "mail_test_recipient";
 }
+
+abstract class MailTemplateConfigGroup extends ConfigGroup
+{
+    abstract public function get_template_prefix(): string;
+
+    abstract public function get_default_subject(): string;
+
+    abstract public function get_default_text_body(): string;
+
+    abstract public function get_default_html_body(): string;
+
+    /**
+     * @return list<string>
+     */
+    abstract public function get_placeholders(): array;
+
+    public function get_from_address_key(): string
+    {
+        return $this->get_template_prefix() . "_from_address";
+    }
+
+    public function get_from_name_key(): string
+    {
+        return $this->get_template_prefix() . "_from_name";
+    }
+
+    public function get_reply_to_address_key(): string
+    {
+        return $this->get_template_prefix() . "_reply_to_address";
+    }
+
+    public function get_subject_key(): string
+    {
+        return $this->get_template_prefix() . "_subject";
+    }
+
+    public function get_text_body_key(): string
+    {
+        return $this->get_template_prefix() . "_text_body";
+    }
+
+    public function get_html_body_key(): string
+    {
+        return $this->get_template_prefix() . "_html_body";
+    }
+
+    /**
+     * @return array<string, ConfigMeta>
+     */
+    public function get_config_fields(): array
+    {
+        $placeholders = implode(", ", $this->get_placeholders());
+
+        return [
+            $this->get_from_address_key() => new ConfigMeta("From address", ConfigType::STRING, help: "Leave blank to use the global mail sender."),
+            $this->get_from_name_key() => new ConfigMeta("From name", ConfigType::STRING, help: "Leave blank to use the global mail sender name."),
+            $this->get_reply_to_address_key() => new ConfigMeta("Reply-To address", ConfigType::STRING, help: "Leave blank to use the global Reply-To address."),
+            $this->get_subject_key() => new ConfigMeta("Email subject", ConfigType::STRING, default: $this->get_default_subject()),
+            $this->get_text_body_key() => new ConfigMeta("Plain text email", ConfigType::STRING, input: ConfigInput::TEXTAREA, default: $this->get_default_text_body()),
+            $this->get_html_body_key() => new ConfigMeta("HTML email", ConfigType::STRING, input: ConfigInput::TEXTAREA, default: $this->get_default_html_body(), help: "Available placeholders: $placeholders"),
+        ];
+    }
+}
