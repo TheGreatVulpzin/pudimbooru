@@ -190,6 +190,7 @@ final class UserPage extends Extension
             [
                 UserAccountsPermission::CREATE_USER => true,
                 UserAccountsPermission::SKIP_LOGIN_CAPTCHA => true,
+                PasswordResetPermission::REQUEST_PASSWORD_RESET => true,
             ],
             description: "The default class for people who are not logged in",
         );
@@ -228,6 +229,7 @@ final class UserPage extends Extension
                 ReportImagePermission::CREATE_IMAGE_REPORT => true,
                 TermsPermission::SKIP_TERMS => true,
                 UserAccountsPermission::CHANGE_USER_SETTING => true,
+                PasswordResetPermission::REQUEST_PASSWORD_RESET => true,
             ],
             description: "The default class for people who are logged in",
         );
@@ -649,12 +651,12 @@ final class UserPage extends Extension
 
     private function page_recover(string $username): void
     {
-        $my_user = User::by_name($username);
-        if (is_null($my_user->email)) {
-            throw new InvalidInput("That user has no registered email address");
-        } else {
-            throw new ServerError("Email sending not implemented");
+        if (PasswordResetInfo::is_enabled()) {
+            send_event(new PasswordResetRequestEvent($username));
+            return;
         }
+
+        throw new ServerError("Email sending not implemented");
     }
 
     private function user_can_edit_user(User $a, User $b): bool
