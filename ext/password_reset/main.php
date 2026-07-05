@@ -116,6 +116,8 @@ final class PasswordReset extends Extension
 
         if (!$mail->sent) {
             Log::error("password_reset", "Password reset email failed for user #{$user->id}");
+        } else {
+            Log::info("password_reset", "Password reset email sent for user #{$user->id}");
         }
     }
 
@@ -205,6 +207,8 @@ final class PasswordReset extends Extension
 
         if (!$mail->sent) {
             Log::error("password_reset", "Password reset success email failed for user #{$user->id}");
+        } else {
+            Log::info("password_reset", "Password reset success email sent for user #{$user->id}");
         }
     }
 

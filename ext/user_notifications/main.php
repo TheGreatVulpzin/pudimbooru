@@ -11,6 +11,7 @@ final class UserNotifications extends Extension
     public const KEY = "user_notifications";
 
     private const VERIFICATION_LIFETIME_HOURS = 24;
+    private const VERIFICATION_RESEND_COOLDOWN_MINUTES = 10;
 
     #[EventListener]
     public function onDatabaseUpgrade(DatabaseUpgradeEvent $event): void
@@ -48,6 +49,11 @@ final class UserNotifications extends Extension
         if ($event->page_matches("user_notifications/send_verification", method: "POST")) {
             if (Ctx::$user->email === null || Ctx::$user->email === "") {
                 throw new InvalidInput("No email address to verify");
+            }
+            if (!$this->canSendVerificationEmail(Ctx::$user)) {
+                Ctx::$page->flash("Aguarde 10 minutos antes de reenviar o email de verificação.");
+                Ctx::$page->set_redirect(make_link("user"));
+                return;
             }
             $this->sendVerificationEmail(Ctx::$user);
             Ctx::$page->flash("Verification email sent");
@@ -102,6 +108,8 @@ final class UserNotifications extends Extension
 
         if (!$mail->sent) {
             Log::error("user_notifications", "Password changed email failed for user #{$event->user->id}");
+        } else {
+            Log::info("user_notifications", "Password changed email sent for user #{$event->user->id}");
         }
     }
 
@@ -114,6 +122,7 @@ final class UserNotifications extends Extension
 
         $this->setEmailVerified($event->user, false);
         $event->user->email_verified = false;
+        Log::info("user_notifications", "Email changed for user #{$event->user->id}");
 
         if ($event->oldEmail !== null && $event->oldEmail !== "" && $event->oldEmail !== $event->newEmail) {
             $mail = MailTemplate::send(new UserEmailChangedOldEmailConfig(), $event->oldEmail, [
@@ -126,6 +135,8 @@ final class UserNotifications extends Extension
 
             if (!$mail->sent) {
                 Log::error("user_notifications", "Email change notice failed for user #{$event->user->id}");
+            } else {
+                Log::info("user_notifications", "Email change notice sent for user #{$event->user->id}");
             }
         }
 
@@ -167,7 +178,25 @@ final class UserNotifications extends Extension
 
         if (!$mail->sent) {
             Log::error("user_notifications", "Email verification failed for user #{$user->id}");
+        } else {
+            Log::info("user_notifications", "Email verification sent for user #{$user->id}");
         }
+    }
+
+    private function canSendVerificationEmail(User $user): bool
+    {
+        $cutoff = date("Y-m-d H:i:s", time() - 60 * self::VERIFICATION_RESEND_COOLDOWN_MINUTES);
+        $recent = Ctx::$database->get_one(
+            "SELECT COUNT(*) FROM user_email_verification_tokens WHERE user_id = :user_id AND email = :email AND used = :used AND created >= :cutoff",
+            [
+                "user_id" => $user->id,
+                "email" => $user->email,
+                "used" => false,
+                "cutoff" => $cutoff,
+            ]
+        );
+
+        return (int)$recent === 0;
     }
 
     private function verifyEmail(string $token): void

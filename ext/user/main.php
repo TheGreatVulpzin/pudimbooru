@@ -7,7 +7,7 @@ namespace Shimmie2;
 use GQLA\{Field, Mutation, Type};
 use MicroCRUD\{ActionColumn, DateColumn, EnumColumn, IntegerColumn, Table, TextColumn};
 
-use function MicroHTML\{A, P, emptyHTML};
+use function MicroHTML\{A, B, P, emptyHTML};
 
 use MicroHTML\HTMLElement;
 use Symfony\Component\Console\Input\InputOption;
@@ -34,6 +34,14 @@ final class UserActionColumn extends ActionColumn
     }
 }
 
+final class UserEmailVerifiedColumn extends TextColumn
+{
+    public function display(array $row): HTMLElement
+    {
+        return bool_escape($row[$this->name] ?? false) ? B("Sim") : emptyHTML("Não");
+    }
+}
+
 final class UserTable extends Table
 {
     public function __construct(\FFSPHP\PDO $db)
@@ -52,6 +60,7 @@ final class UserTable extends Table
             new IntegerColumn("id", "ID"),
             new UserNameColumn("name", "Name"),
             new EnumColumn("class", "Class", $classes),
+            ...UserNotificationsInfo::is_enabled() ? [new UserEmailVerifiedColumn("email_verified", "Verificado")] : [],
             // Added later, for admins only
             // new TextColumn("email", "Email"),
             new DateColumn("joindate", "Join Date"),
@@ -349,7 +358,7 @@ final class UserPage extends Extension
                 $duser->set_email($address);
                 $duser = User::by_id($duser->id);
                 send_event(new UserEmailChangedEvent($duser, $user, $old_email, $duser->email));
-                $page->flash("Email changed");
+                $page->flash("Email changed. Enviamos um email para você verificar a conta.");
                 $this->redirect_to_user($duser);
             }
         }
