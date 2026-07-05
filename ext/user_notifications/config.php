@@ -21,16 +21,16 @@ final class UserPasswordChangedEmailConfig extends MailTemplateConfigGroup
 
     public function get_default_text_body(): string
     {
-        return "Hello \$usuario,\n\nYour password on \$site was changed.\n\nIf this was you, no action is needed.\n\nIf this was not you, contact the site staff immediately.";
+        return "Hello {{username}},\n\nYour password on {{site}} was changed.\n\nIf this was you, no action is needed.\n\nIf this was not you, contact the site staff immediately.";
     }
 
     public function get_default_html_body(): string
     {
-        return "<p>Hello \$usuario,</p>\n<p>Your password on \$site was changed.</p>\n<p>If this was you, no action is needed.</p>\n<p>If this was not you, contact the site staff immediately.</p>";
+        return "<p>Hello {{username}},</p>\n<p>Your password on {{site}} was changed.</p>\n<p>If this was you, no action is needed.</p>\n<p>If this was not you, contact the site staff immediately.</p>";
     }
 
     public function get_placeholders(): array
     {
-        return ["\$usuario", "\$username", "\$site", "\$actor"];
+        return ["{{username}}", "{{site}}", "{{actor}}"];
     }
 }

@@ -154,7 +154,7 @@ final class Mail extends Extension
 final class MailTemplate
 {
     /**
-     * @param array<string, string> $placeholders
+     * @param array<string, string> $placeholders Placeholder names without delimiters, eg ["username" => "alice"].
      * @param array<string, string> $headers
      */
     public static function send(MailTemplateConfigGroup $template, string $to, array $placeholders, array $headers = []): MailSendEvent
@@ -177,7 +177,7 @@ final class MailTemplate
      */
     private static function render(string $template, array $placeholders): string
     {
-        return strtr($template, $placeholders);
+        return strtr($template, self::expandPlaceholders($placeholders));
     }
 
     /**
@@ -187,6 +187,26 @@ final class MailTemplate
     {
         $html = self::render($template, $placeholders);
         return $html === "" ? null : $html;
+    }
+
+    /**
+     * @param array<string, string> $placeholders
+     * @return array<string, string>
+     */
+    private static function expandPlaceholders(array $placeholders): array
+    {
+        $expanded = [];
+        foreach ($placeholders as $name => $value) {
+            $name = trim($name, "{}$");
+            $expanded["{{{$name}}}"] = $value;
+            $expanded["\${$name}"] = $value;
+        }
+
+        if (isset($placeholders["username"])) {
+            $expanded["\$usuario"] = $placeholders["username"];
+        }
+
+        return $expanded;
     }
 
     private static function requiredConfigString(string $key): string

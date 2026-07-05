@@ -108,10 +108,9 @@ final class PasswordReset extends Extension
 
         $link = (string)make_link("password_reset/reset", ["token" => $token])->asAbsolute();
         $placeholders = [
-            '$link' => $link,
-            '$usuario' => $user->name,
-            '$username' => $user->name,
-            '$site' => Ctx::$config->get(SetupConfig::TITLE),
+            'link' => $link,
+            'username' => $user->name,
+            'site' => Ctx::$config->get(SetupConfig::TITLE),
         ];
         $mail = MailTemplate::send(new PasswordResetEmailConfig(), $user->email, $placeholders);
 
@@ -200,9 +199,8 @@ final class PasswordReset extends Extension
         }
 
         $mail = MailTemplate::send(new PasswordResetSuccessEmailConfig(), $user->email, [
-            '$usuario' => $user->name,
-            '$username' => $user->name,
-            '$site' => Ctx::$config->get(SetupConfig::TITLE),
+            'username' => $user->name,
+            'site' => Ctx::$config->get(SetupConfig::TITLE),
         ]);
 
         if (!$mail->sent) {

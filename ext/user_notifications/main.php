@@ -20,10 +20,9 @@ final class UserNotifications extends Extension
         }
 
         $mail = MailTemplate::send(new UserPasswordChangedEmailConfig(), $event->user->email, [
-            '$usuario' => $event->user->name,
-            '$username' => $event->user->name,
-            '$site' => Ctx::$config->get(SetupConfig::TITLE),
-            '$actor' => $event->actor->name,
+            'username' => $event->user->name,
+            'site' => Ctx::$config->get(SetupConfig::TITLE),
+            'actor' => $event->actor->name,
         ]);
 
         if (!$mail->sent) {

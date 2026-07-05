@@ -36,17 +36,17 @@ final class PasswordResetEmailConfig extends MailTemplateConfigGroup
 
     public function get_default_text_body(): string
     {
-        return "Hello \$usuario,\n\nUse this link to reset your password:\n\n\$link\n\nIf you did not request this, ignore this email.";
+        return "Hello {{username}},\n\nUse this link to reset your password:\n\n{{link}}\n\nIf you did not request this, ignore this email.";
     }
 
     public function get_default_html_body(): string
     {
-        return "<p>Hello \$usuario,</p>\n<p>Use this link to reset your password:</p>\n<p><a href=\"\$link\">Reset password</a></p>\n<p>If you did not request this, ignore this email.</p>";
+        return "<p>Hello {{username}},</p>\n<p>Use this link to reset your password:</p>\n<p><a href=\"{{link}}\">Reset password</a></p>\n<p>If you did not request this, ignore this email.</p>";
     }
 
     public function get_placeholders(): array
     {
-        return ["\$link", "\$usuario", "\$username", "\$site"];
+        return ["{{link}}", "{{username}}", "{{site}}"];
     }
 }
 
@@ -67,16 +67,16 @@ final class PasswordResetSuccessEmailConfig extends MailTemplateConfigGroup
 
     public function get_default_text_body(): string
     {
-        return "Hello \$usuario,\n\nYour password reset on \$site was completed successfully.\n\nIf this was you, no action is needed.\n\nIf this was not you, contact the site staff immediately.";
+        return "Hello {{username}},\n\nYour password reset on {{site}} was completed successfully.\n\nIf this was you, no action is needed.\n\nIf this was not you, contact the site staff immediately.";
     }
 
     public function get_default_html_body(): string
     {
-        return "<p>Hello \$usuario,</p>\n<p>Your password reset on \$site was completed successfully.</p>\n<p>If this was you, no action is needed.</p>\n<p>If this was not you, contact the site staff immediately.</p>";
+        return "<p>Hello {{username}},</p>\n<p>Your password reset on {{site}} was completed successfully.</p>\n<p>If this was you, no action is needed.</p>\n<p>If this was not you, contact the site staff immediately.</p>";
     }
 
     public function get_placeholders(): array
     {
-        return ["\$usuario", "\$username", "\$site"];
+        return ["{{username}}", "{{site}}"];
     }
 }
