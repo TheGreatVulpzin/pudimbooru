@@ -345,7 +345,10 @@ final class UserPage extends Extension
             $duser = User::by_id(int_escape($event->POST->req('id')));
             $address = $event->POST->req('address');
             if ($this->user_can_edit_user($user, $duser)) {
+                $old_email = $duser->email;
                 $duser->set_email($address);
+                $duser = User::by_id($duser->id);
+                send_event(new UserEmailChangedEvent($duser, $user, $old_email, $duser->email));
                 $page->flash("Email changed");
                 $this->redirect_to_user($duser);
             }
@@ -565,6 +568,9 @@ final class UserPage extends Extension
         }
 
         $event->set_user($new_user);
+        if ($new_user->email !== null && $new_user->email !== "") {
+            send_event(new UserEmailChangedEvent($new_user, Ctx::$user, null, $new_user->email, "user_creation"));
+        }
     }
 
     public const USER_SEARCH_REGEX = "/^(?:poster|user)(!?)[=:](.*)$/i";

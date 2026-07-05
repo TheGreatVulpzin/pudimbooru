@@ -82,8 +82,8 @@ final class PasswordReset extends Extension
     {
         $this->deleteExpiredTokens();
         $user = $this->findUser($login);
-        if ($user === null || $user->email === null || $user->email === "") {
-            Log::info("password_reset", "Password reset requested for unknown or email-less account");
+        if ($user === null || $user->email === null || $user->email === "" || !$user->email_verified) {
+            Log::info("password_reset", "Password reset requested for unknown, email-less, or unverified account");
             return;
         }
 

@@ -96,3 +96,16 @@ class UserPasswordChangedEvent extends Event
         parent::__construct();
     }
 }
+
+class UserEmailChangedEvent extends Event
+{
+    public function __construct(
+        public User $user,
+        public User $actor,
+        public ?string $oldEmail,
+        public ?string $newEmail,
+        public string $source = "user_admin",
+    ) {
+        parent::__construct();
+    }
+}

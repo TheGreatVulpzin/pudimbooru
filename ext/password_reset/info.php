@@ -12,7 +12,7 @@ final class PasswordResetInfo extends ExtensionInfo
     public array $authors = ["Vulpzin" => null];
     public ExtensionCategory $category = ExtensionCategory::GENERAL;
     public string $description = "Allows users to reset their password by email";
-    public array $dependencies = [MailInfo::KEY];
+    public array $dependencies = [MailInfo::KEY, UserNotificationsInfo::KEY];
     public ?string $documentation =
         "Adds a secure password reset flow by email.
 <br><br>
