@@ -84,7 +84,13 @@ class PudimbooruViewPostTheme extends ViewPostTheme
 
         if (
             (!$image->is_locked() || Ctx::$user->can(PostLockPermission::EDIT_IMAGE_LOCK)) &&
-            Ctx::$user->can(PostTagsPermission::EDIT_IMAGE_TAG)
+            (
+                PostTagsPermission::can_edit_image_tag(Ctx::$user, $image) ||
+                PostSourcePermission::can_edit_image_source(Ctx::$user, $image) ||
+                PostTitlesPermission::can_edit_image_title(Ctx::$user, $image) ||
+                PostDescriptionPermission::can_edit_image_descriptions(Ctx::$user, $image) ||
+                RelationshipsPermission::can_edit_image_relationships(Ctx::$user, $image)
+            )
         ) {
             $editor_parts[] = TR(TD(
                 ["colspan" => 4],

@@ -50,7 +50,7 @@ final class PostTitles extends Extension
         $event->add_part(
             $this->theme->get_title_set_html(
                 self::get_title($event->image),
-                Ctx::$user->can(PostTitlesPermission::EDIT_IMAGE_TITLE)
+                PostTitlesPermission::can_edit_image_title(Ctx::$user, $event->image)
             ),
             10
         );
@@ -69,7 +69,7 @@ final class PostTitles extends Extension
     public function onPostInfoSet(PostInfoSetEvent $event): void
     {
         $title = $event->get_param('title');
-        if (Ctx::$user->can(PostTitlesPermission::EDIT_IMAGE_TITLE) && !is_null($title)) {
+        if (PostTitlesPermission::can_edit_image_title(Ctx::$user, $event->image) && !is_null($title)) {
             send_event(new PostTitleSetEvent($event->image, $title));
         }
     }
@@ -77,7 +77,9 @@ final class PostTitles extends Extension
     #[EventListener]
     public function onPostTitleSet(PostTitleSetEvent $event): void
     {
-        $this->set_title($event->image->id, $event->title);
+        if (PostTitlesPermission::can_edit_image_title(Ctx::$user, $event->image)) {
+            $this->set_title($event->image->id, $event->title);
+        }
     }
 
     #[EventListener(priority: 60)]

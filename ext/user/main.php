@@ -205,8 +205,7 @@ final class UserPage extends Extension
         );
 
         // Users can control themselves, upload new content,
-        // and do basic edits (tags, source, title) on other
-        // people's content
+        // and do basic edits on content that they own
         new UserClass(
             "user",
             "base",
@@ -227,14 +226,15 @@ final class UserPage extends Extension
                 NumericScorePermission::CREATE_VOTE => true,
                 PoolsPermission::CREATE => true,
                 PoolsPermission::UPDATE => true,
-                PostSourcePermission::EDIT_IMAGE_SOURCE => true,
-                PostTagsPermission::EDIT_IMAGE_TAG => true,
-                PostTitlesPermission::EDIT_IMAGE_TITLE => true,
+                PostDescriptionPermission::EDIT_OWN_IMAGE_DESCRIPTIONS => true,
+                PostSourcePermission::EDIT_OWN_IMAGE_SOURCE => true,
+                PostTagsPermission::EDIT_OWN_IMAGE_TAG => true,
+                PostTitlesPermission::EDIT_OWN_IMAGE_TITLE => true,
                 PrivateImagePermission::SET_PRIVATE_IMAGE => true,
                 PrivMsgPermission::READ_PM => true,
                 PrivMsgPermission::SEND_PM => true,
                 RatingsPermission::EDIT_IMAGE_RATING => true,
-                RelationshipsPermission::EDIT_IMAGE_RELATIONSHIPS => true,
+                RelationshipsPermission::EDIT_OWN_IMAGE_RELATIONSHIPS => true,
                 ReportImagePermission::CREATE_IMAGE_REPORT => true,
                 TermsPermission::SKIP_TERMS => true,
                 UserAccountsPermission::CHANGE_USER_SETTING => true,

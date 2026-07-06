@@ -52,7 +52,7 @@ final class PostDescription extends Extension
     public function onPostInfoSet(PostInfoSetEvent $event): void
     {
         $description = $event->get_param("description");
-        if (Ctx::$user->can(PostDescriptionPermission::EDIT_IMAGE_DESCRIPTIONS) && $description) {
+        if (PostDescriptionPermission::can_edit_image_descriptions(Ctx::$user, $event->image) && $description) {
             send_event(new PostDescriptionSetEvent($event->image->id, $description));
         }
     }
@@ -61,6 +61,10 @@ final class PostDescription extends Extension
     public function onPostDescriptionSet(PostDescriptionSetEvent $event): void
     {
         $database = Ctx::$database;
+        $image = Post::by_id_ex($event->image_id);
+        if (!PostDescriptionPermission::can_edit_image_descriptions(Ctx::$user, $image)) {
+            return;
+        }
 
         $database->execute("
             DELETE
@@ -83,6 +87,6 @@ final class PostDescription extends Extension
             "SELECT description FROM image_descriptions WHERE image_id = :id",
             ["id" => $event->image->id]
         ) ?: "None";
-        $event->add_part($this->theme->get_description_editor_html($description), 35);
+        $event->add_part($this->theme->get_description_editor_html($description, $event->image), 35);
     }
 }
