@@ -119,7 +119,7 @@ class PudimbooruViewPostTheme extends ViewPostTheme
     protected function build_stats(Post $image): HTMLElement
     {
         $owner = $image->get_owner()->name;
-        $ip = Ctx::$user->can(IPBanPermission::VIEW_IP) ? " ({$image->owner_ip})" : "";
+        $ip = Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS) ? " ({$image->owner_ip})" : "";
 
         $parts = [
             "ID: {$image->id}",

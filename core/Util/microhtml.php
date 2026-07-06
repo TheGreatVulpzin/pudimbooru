@@ -34,7 +34,7 @@ function SHM_DATE(string $date, bool $html = true): HTMLElement
 
 function SHM_IP(string $ip, string $ban_reason): ?HTMLElement
 {
-    if (!Ctx::$user->can(IPBanPermission::VIEW_IP)) {
+    if (!Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS)) {
         return null;
     }
     $html = emptyHTML($ip);

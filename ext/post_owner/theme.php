@@ -14,7 +14,7 @@ class PostOwnerTheme extends Themelet
     {
         $owner = $image->get_owner()->name;
         $date = SHM_DATE($image->posted);
-        $ip = Ctx::$user->can(IPBanPermission::VIEW_IP) ? emptyHTML(" (", SHM_IP($image->owner_ip, "Post posted {$image->posted}"), ")") : null;
+        $ip = Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS) ? emptyHTML(" (", SHM_IP($image->owner_ip, "Post posted {$image->posted}"), ")") : null;
         return SHM_POST_INFO(
             "Uploader",
             emptyHTML(A(["class" => "username", "href" => make_link("user/$owner")], $owner), $ip, ", ", $date),

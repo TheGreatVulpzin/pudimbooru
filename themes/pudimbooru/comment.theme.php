@@ -100,7 +100,7 @@ class PudimbooruCommentListTheme extends CommentListTheme
         $bae = send_event(new BuildAvatarEvent($comment->owner));
         $avatar = $bae->html ? DIV(["class" => "comment-avatar"], $bae->html) : null;
         $actions = emptyHTML(
-            Ctx::$user->can(IPBanPermission::VIEW_IP) ? emptyHTML(BR(), SHM_IP($comment->owner_ip, "Comentário em {$comment->posted}")) : null,
+            Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS) ? emptyHTML(BR(), SHM_IP($comment->owner_ip, "Comentário em {$comment->posted}")) : null,
             Ctx::$user->can(CommentPermission::DELETE_COMMENT) ? emptyHTML(" - ", $this->delete_link($comment->id, $comment->image_id, $comment->owner->name, $tfe->stripped)) : null,
             Ctx::$user->can(CommentPermission::EDIT_COMMENT) && Ctx::$user->id === $comment->owner_id ? emptyHTML(" - ", $this->edit_button($comment->id, $comment->image_id, $comment->comment)) : null,
         );

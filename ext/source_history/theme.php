@@ -124,7 +124,7 @@ class SourceHistoryTheme extends Themelet
         $current_source = $fields['source'];
         $name = $fields['name'];
         $date_set = SHM_DATE($fields['date_set']);
-        $ip = Ctx::$user->can(IPBanPermission::VIEW_IP) ?
+        $ip = Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS) ?
             emptyHTML(" ", SHM_IP($fields['user_ip'], "Sourcing >>$image_id as '$current_source'"))
             : null;
         $setter = A(["href" => make_link("user/" . url_escape($name))], $name);

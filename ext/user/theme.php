@@ -329,7 +329,7 @@ class UserPageTheme extends Themelet
             P("Pesquisar por posts postados por indivíduos específicos."),
             SHM_COMMAND_EXAMPLE("poster=username", 'Pesquisa por posts postados por "username"'),
             // SHM_COMMAND_EXAMPLE("poster_id=123", 'Returns posts posted by user 123'),
-            Ctx::$user->can(IPBanPermission::VIEW_IP)
+            Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS)
                 ? SHM_COMMAND_EXAMPLE("poster_ip=127.0.0.1", "Returns posts posted from IP 127.0.0.1.")
                 : null
         );

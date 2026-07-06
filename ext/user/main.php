@@ -489,7 +489,7 @@ final class UserPage extends Extension
             $this->theme->display_user_links($user, $ubbe->get_parts());
         }
         if (
-            $user->can(IPBanPermission::VIEW_IP) &&
+            $user->can(UserAccountsPermission::VIEW_USER_IPS) &&
             !$is_self &&
             ($event->display_user->id !== Ctx::$config->get(UserAccountsConfig::ANON_ID)) # don't show anon's IP list, it is le huge
         ) {
@@ -618,7 +618,7 @@ final class UserPage extends Extension
         } elseif ($matches = $event->matches(self::USER_ID_SEARCH_REGEX)) {
             $user_id = int_escape($matches[2]);
             $event->add_querylet(new Querylet("images.owner_id {$matches[1]}= $user_id"));
-        } elseif (Ctx::$user->can(IPBanPermission::VIEW_IP) && $matches = $event->matches("/^(?:poster|user)_ip[=:]([0-9\.]+)$/i")) {
+        } elseif (Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS) && $matches = $event->matches("/^(?:poster|user)_ip[=:]([0-9\.]+)$/i")) {
             $user_ip = $matches[1]; // FIXME: ip_escape?
             $event->add_querylet(new Querylet("images.owner_ip = '$user_ip'"));
         }

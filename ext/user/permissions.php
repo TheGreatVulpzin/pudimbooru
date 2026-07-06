@@ -35,6 +35,9 @@ final class UserAccountsPermission extends PermissionGroup
     #[PermissionMeta("Change other users' settings")]
     public const CHANGE_OTHER_USER_SETTING = "change_other_user_setting";
 
+    #[PermissionMeta("View other users' IP history", advanced: true)]
+    public const VIEW_USER_IPS = "view_user_ips";
+
     #[PermissionMeta("Protected", advanced: true, help: "Only admins can modify protected users (stops a moderator from changing an admin's password)")]
     public const PROTECTED = "protected";
 
