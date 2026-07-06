@@ -17,6 +17,7 @@ Seja bem-vindo ao repositório do Pudimbooru, um fork do [Shimmie2](https://gith
 - **Sistema de E-mail** - Adiciona um tão necessário sistema de email com suporte de SMTP mais uma extensão para notificações!
 - **Recuperação de Senha** - Deixa você conseguir enviar um e-mail de recuperação de senha!
 - **Tema Visual** – Aparência adaptada para o estilo bem pudinesco, yummers!
+- **Outras Mudanças** - Aba de opções de usuário finalmente funcional, e também uma abinha para saber se o post é gif ou vídeo!!
 - **Counter8** - Um counter customizado do universo do cazum8!
 
 Todo o código-fonte original do Shimmie2 permanece sob a licença GPLv2, e as modificações específicas deste fork seguem a mesma licença.
