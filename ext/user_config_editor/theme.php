@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Shimmie2;
 
-use function MicroHTML\{DIV, H3, INPUT, P, SECTION};
+use function MicroHTML\{DIV, H3, INPUT, SECTION};
 
 use MicroHTML\HTMLElement;
 
@@ -24,13 +24,16 @@ class UserConfigEditorTheme extends Themelet
     {
         usort($config_blocks, Block::cmp(...));
 
-        $blocks = DIV(["class" => "setupblocks"]);
+        Ctx::$page->set_title("User Options");
+        $this->display_navigation();
+
         if (count($config_blocks) === 0) {
-            $blocks->appendChild(P("Há nada por aqui, por agora..."));
-        } else {
-            foreach ($config_blocks as $block) {
-                $blocks->appendChild($this->sb_to_html($block));
-            }
+            return;
+        }
+
+        $blocks = DIV(["class" => "setupblocks"]);
+        foreach ($config_blocks as $block) {
+            $blocks->appendChild($this->sb_to_html($block));
         }
 
         $table = SHM_SIMPLE_FORM(
@@ -40,8 +43,6 @@ class UserConfigEditorTheme extends Themelet
             INPUT(['class' => 'setupsubmit', 'type' => 'submit', 'value' => 'Save Settings'])
         );
 
-        Ctx::$page->set_title("User Options");
-        $this->display_navigation();
         Ctx::$page->add_block(new Block(null, $table, id: "Setupmain"));
     }
 

@@ -15,10 +15,17 @@ final class Biography extends Extension
         $duser = $event->display_user;
         $bio = $duser->get_config()->get(BiographyConfig::BIOGRAPHY) ?? "";
 
-        if (Ctx::$user->id === $duser->id || Ctx::$user->can(UserAccountsPermission::EDIT_USER_INFO)) {
-            $this->theme->display_composer($duser, $bio);
-        } else {
+        if ($bio !== "") {
             $this->theme->display_biography($bio);
+        }
+    }
+
+    #[EventListener]
+    public function onUserOperationsBuilding(UserOperationsBuildingEvent $event): void
+    {
+        if (Ctx::$user->id === $event->user->id || Ctx::$user->can(UserAccountsPermission::EDIT_USER_INFO)) {
+            $bio = $event->user_config->get(BiographyConfig::BIOGRAPHY) ?? "";
+            $event->add_part($this->theme->get_composer($event->user, $bio), 30);
         }
     }
 

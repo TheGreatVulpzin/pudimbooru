@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Shimmie2;
 
 use function MicroHTML\{A, B, BR, P, TABLE, TBODY, TD, THEAD, TR, emptyHTML, joinHTML};
+
+use MicroHTML\HTMLElement;
+
 use function MicroHTML\{INPUT};
 
 /**
@@ -90,13 +93,12 @@ class ReportImageTheme extends Themelet
         Ctx::$page->add_block(new Block("Reportar Post", $html, "left"));
     }
 
-    public function get_nuller(User $duser): void
+    public function get_nuller(User $duser): HTMLElement
     {
-        $html = SHM_SIMPLE_FORM(
+        return SHM_SIMPLE_FORM(
             make_link("image_report/remove_reports_by"),
             INPUT(["type" => 'hidden', "name" => 'user_id', "value" => $duser->id]),
             SHM_SUBMIT('Delete all reports by this user')
         );
-        Ctx::$page->add_block(new Block("Reports", $html, "main", 80));
     }
 }

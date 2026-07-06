@@ -24,15 +24,16 @@ final class UserPageTest extends ShimmiePHPUnitTestCase
         // should be on the user page
         self::get_page('user/test');
         self::assert_title("test's Page");
-        self::assert_text("Operations");
+        self::assert_no_text("Operations");
+        self::assert_text("User Options");
         // FIXME: check class
         //self::assert_no_text("Admin:");
         self::log_out();
 
         self::log_in_as_admin();
         // should be on the user page
-        self::get_page('user/demo');
-        self::assert_title("demo's Page");
+        self::get_page('user/test');
+        self::assert_title("test's Page");
         self::assert_text("Operations");
         // FIXME: check class
         //self::assert_text("Admin:");

@@ -42,6 +42,7 @@ final class UserConfigEditor extends Extension
                 }
             }
             $this->theme->display_user_config_page($blocks, Ctx::$user);
+            $this->display_user_operations(Ctx::$user);
         }
         if ($event->page_matches("user_config/save", method: "POST", permission: UserAccountsPermission::CHANGE_USER_SETTING)) {
             $duser = User::by_id(int_escape($event->POST->req('id')));
@@ -54,5 +55,16 @@ final class UserConfigEditor extends Extension
             Ctx::$page->flash("Config saved");
             Ctx::$page->set_redirect(make_link("user_config"));
         }
+    }
+
+    private function display_user_operations(User $user): void
+    {
+        $theme = Themelet::get_for_extension_class(UserPage::class);
+        if (!$theme instanceof UserPageTheme) {
+            return;
+        }
+
+        $uobe = send_event(new UserOperationsBuildingEvent($user, $user->get_config()));
+        Ctx::$page->add_block(new Block("Operations", $theme->build_operations($user, $uobe), "main", 60));
     }
 }

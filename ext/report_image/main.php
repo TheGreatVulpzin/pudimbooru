@@ -87,10 +87,10 @@ final class ReportImage extends Extension
     }
 
     #[EventListener]
-    public function onUserPageBuilding(UserPageBuildingEvent $event): void
+    public function onUserOperationsBuilding(UserOperationsBuildingEvent $event): void
     {
         if (Ctx::$user->can(ReportImagePermission::VIEW_IMAGE_REPORT)) {
-            $this->theme->get_nuller($event->display_user);
+            $event->add_part($this->theme->get_nuller($event->user), 80);
         }
     }
 

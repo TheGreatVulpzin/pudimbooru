@@ -477,22 +477,20 @@ final class UserPage extends Extension
 
         $this->theme->display_user_page($event->display_user, $event->get_parts());
 
-        if (!$user->is_anonymous()) {
-            if ($user->id === $event->display_user->id || $user->can("edit_user_info")) {
-                $uobe = send_event(new UserOperationsBuildingEvent($event->display_user, $event->display_user->get_config()));
-                Ctx::$page->add_block(new Block("Operations", $this->theme->build_operations($event->display_user, $uobe), "main", 60));
-            }
+        $is_self = $user->id === $event->display_user->id;
+
+        if (!$is_self && $this->user_can_view_operations($user, $event->display_user)) {
+            $uobe = send_event(new UserOperationsBuildingEvent($event->display_user, $event->display_user->get_config()));
+            Ctx::$page->add_block(new Block("Operations", $this->theme->build_operations($event->display_user, $uobe), "main", 60));
         }
 
-        if ($user->id === $event->display_user->id) {
+        if ($is_self) {
             $ubbe = send_event(new UserBlockBuildingEvent());
             $this->theme->display_user_links($user, $ubbe->get_parts());
         }
         if (
-            (
-                $user->can(IPBanPermission::VIEW_IP) ||  # user can view all IPS
-                ($user->id === $event->display_user->id)  # or user is viewing themselves
-            ) &&
+            $user->can(IPBanPermission::VIEW_IP) &&
+            !$is_self &&
             ($event->display_user->id !== Ctx::$config->get(UserAccountsConfig::ANON_ID)) # don't show anon's IP list, it is le huge
         ) {
             $this->theme->display_ip_list(
@@ -690,15 +688,23 @@ final class UserPage extends Extension
             throw new PermissionDenied("You aren't logged in");
         }
 
-        if (
-            ($a->name === $b->name) ||
-            ($b->can(UserAccountsPermission::PROTECTED) && $a->class->name === "admin") ||
-            (!$b->can(UserAccountsPermission::PROTECTED) && $a->can(UserAccountsPermission::EDIT_USER_INFO))
-        ) {
+        if ($this->user_can_view_operations($a, $b)) {
             return true;
         } else {
             throw new PermissionDenied("You need to be an admin to change other people's details");
         }
+    }
+
+    private function user_can_view_operations(User $viewer, User $display_user): bool
+    {
+        if ($viewer->is_anonymous()) {
+            return false;
+        }
+
+        return
+            $viewer->name === $display_user->name ||
+            ($display_user->can(UserAccountsPermission::PROTECTED) && $viewer->class->name === "admin") ||
+            (!$display_user->can(UserAccountsPermission::PROTECTED) && $viewer->can(UserAccountsPermission::EDIT_USER_INFO));
     }
 
     private function redirect_to_user(User $duser): void
