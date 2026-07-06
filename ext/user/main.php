@@ -477,21 +477,21 @@ final class UserPage extends Extension
 
         $this->theme->display_user_page($event->display_user, $event->get_parts());
 
-        if (!$user->is_anonymous()) {
-            if ($user->id === $event->display_user->id || $user->can("edit_user_info")) {
-                $uobe = send_event(new UserOperationsBuildingEvent($event->display_user, $event->display_user->get_config()));
-                Ctx::$page->add_block(new Block("Operations", $this->theme->build_operations($event->display_user, $uobe), "main", 60));
-            }
+        $is_self = $user->id === $event->display_user->id;
+
+        if (!$user->is_anonymous() && !$is_self && $user->can("edit_user_info")) {
+            $uobe = send_event(new UserOperationsBuildingEvent($event->display_user, $event->display_user->get_config()));
+            Ctx::$page->add_block(new Block("Operations", $this->theme->build_operations($event->display_user, $uobe), "main", 60));
         }
 
-        if ($user->id === $event->display_user->id) {
+        if ($is_self) {
             $ubbe = send_event(new UserBlockBuildingEvent());
             $this->theme->display_user_links($user, $ubbe->get_parts());
         }
         if (
             (
                 $user->can(IPBanPermission::VIEW_IP) ||  # user can view all IPS
-                ($user->id === $event->display_user->id)  # or user is viewing themselves
+                $is_self  # or user is viewing themselves
             ) &&
             ($event->display_user->id !== Ctx::$config->get(UserAccountsConfig::ANON_ID)) # don't show anon's IP list, it is le huge
         ) {
