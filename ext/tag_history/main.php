@@ -42,7 +42,7 @@ final class TagHistory extends Extension
     #[EventListener]
     public function onPostAdminBlockBuilding(PostAdminBlockBuildingEvent $event): void
     {
-        $event->add_button("View Tag History", "tag_history/{$event->image->id}", 20);
+        $event->add_button("Mostrar Histórico de Tags", "tag_history/{$event->image->id}", 20);
     }
 
     #[EventListener]
@@ -177,7 +177,7 @@ final class TagHistory extends Extension
             // there is no history entry with that id so either the image was deleted
             // while the user was viewing the history, someone is playing with form
             // variables or we have messed up in code somewhere.
-            throw new HistoryNotFound("No tag history with specified id was found.");
+            throw new HistoryNotFound("Nenhum histórico de tag com o ID específicado foi encontrado.");
         }
 
         // lets get the values out of the result
@@ -263,7 +263,7 @@ final class TagHistory extends Extension
             ["id" => $image_id]
         );
         if (empty($entries)) {
-            throw new HistoryNotFound("No tag history for Image #$image_id was found.");
+            throw new HistoryNotFound("Nenhum histórico de tag para a imagem #$image_id foi encontrado.");
         }
         return $entries;
     }

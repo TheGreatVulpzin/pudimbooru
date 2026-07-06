@@ -126,6 +126,7 @@ final class Trash extends Extension
             "UPDATE images SET trash = :trash WHERE id = :id",
             ["trash" => $trash,"id" => $image_id]
         );
+        Ctx::$cache->delete("pending-count");
     }
 
     #[EventListener]

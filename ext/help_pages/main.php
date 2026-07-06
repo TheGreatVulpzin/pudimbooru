@@ -53,12 +53,21 @@ final class HelpPages extends Extension
         if ($event->page_matches("help/{topic}")) {
             $pages = send_event(new HelpPageListBuildingEvent())->pages;
             $name = $event->get_arg('topic');
-            if (array_key_exists($name, $pages)) {
-                $title = $pages[$name];
-            } else {
+            if (!array_key_exists($name, $pages)) {
                 return;
             }
 
+            if ($name === "faq") {
+                $page->set_redirect(make_link("wiki/faq"));
+                return;
+            }
+
+            if ($name === "about") {
+                $page->set_redirect(make_link("wiki/about"));
+                return;
+            }
+
+            $title = $pages[$name];
             $this->theme->display_help_page($title, $pages);
             $hpbe = send_event(new HelpPageBuildingEvent($name));
             foreach ($hpbe->get_parts() as $block) {
@@ -72,7 +81,7 @@ final class HelpPages extends Extension
     #[EventListener]
     public function onPageNavBuilding(PageNavBuildingEvent $event): void
     {
-        $event->add_nav_link(make_link('help'), "Help", category: "help");
+        $event->add_nav_link(make_link('help'), PudimbooruLocale::translate("Help"), category: "help");
     }
 
     #[EventListener]
@@ -81,7 +90,7 @@ final class HelpPages extends Extension
         if ($event->parent === "help") {
             $pages = send_event(new HelpPageListBuildingEvent())->pages;
             foreach ($pages as $key => $value) {
-                $event->add_nav_link(make_link('help/'.$key), $value);
+                $event->add_nav_link(make_link('help/'.$key), PudimbooruLocale::translate($value));
             }
         }
     }
@@ -89,7 +98,7 @@ final class HelpPages extends Extension
     #[EventListener]
     public function onUserBlockBuilding(UserBlockBuildingEvent $event): void
     {
-        $event->add_link("Help", make_link("help"), 90);
+        $event->add_link(PudimbooruLocale::translate("Help"), make_link("help"), 90);
     }
 
     #[EventListener]
@@ -97,6 +106,8 @@ final class HelpPages extends Extension
     {
         $event->add_page("search", "Searching");
         $event->add_page("licenses", "Licenses");
+        $event->add_page("faq", "Perguntas Frequentes");
+        $event->add_page("about", "Sobre Nós");
     }
 
     #[EventListener]

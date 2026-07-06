@@ -235,7 +235,6 @@ final class CommentList extends Extension
     {
         if ($event->parent === "comment") {
             $event->add_nav_link(make_link('comment/list'), "All");
-            $event->add_nav_link(make_link('ext_doc/comment'), "Help");
         }
     }
 
@@ -369,7 +368,7 @@ final class CommentList extends Extension
         $i_days_old = ((time() - \Safe\strtotime($event->display_user->join_date)) / 86400) + 1;
         $i_comment_count = Comment::count_comments_by_user($event->display_user);
         $h_comment_rate = sprintf("%.1f", ($i_comment_count / $i_days_old));
-        $event->add_part(emptyHTML("Comments made: $i_comment_count, $h_comment_rate per day"));
+        $event->add_part(emptyHTML("Comentários feitos: $i_comment_count, $h_comment_rate por dia"));
 
         $recent = Comment::get_all_from_user($event->display_user->id, 10);
         $this->theme->display_recent_user_comments($recent, $event->display_user);

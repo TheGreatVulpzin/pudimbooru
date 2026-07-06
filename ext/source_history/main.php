@@ -42,7 +42,7 @@ final class SourceHistory extends Extension
     #[EventListener]
     public function onPostAdminBlockBuilding(PostAdminBlockBuildingEvent $event): void
     {
-        $event->add_button("View Source History", "source_history/{$event->image->id}", 20);
+        $event->add_button("Mostar Histórico de Fonte", "source_history/{$event->image->id}", 20);
     }
 
     #[EventListener(priority: 40)] // in before source are actually set, so that "get current source" works
@@ -119,7 +119,7 @@ final class SourceHistory extends Extension
             // there is no history entry with that id so either the image was deleted
             // while the user was viewing the history, someone is playing with form
             // variables or we have messed up in code somewhere.
-            throw new HistoryNotFound("No source history with specified id was found.");
+            throw new HistoryNotFound("Nenhum histórico de fonte com o ID específicado foi encontrado.");
         }
 
         // lets get the values out of the result
@@ -207,7 +207,7 @@ final class SourceHistory extends Extension
             ["image_id" => $image_id]
         );
         if (empty($entries)) {
-            throw new HistoryNotFound("No source history for Image #$image_id was found.");
+            throw new HistoryNotFound("Nenhum histórico de fonte para a imagem #$image_id foi encontrado.");
         }
         return $entries;
     }

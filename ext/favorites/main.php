@@ -41,9 +41,9 @@ final class Favorites extends Extension
             ) > 0;
 
             if ($is_favorited) {
-                $event->add_button("Un-Favorite", "favourite/remove/{$event->image->id}");
+                $event->add_button("Desfavoritar", "favourite/remove/{$event->image->id}");
             } else {
-                $event->add_button("Favorite", "favourite/add/{$event->image->id}");
+                $event->add_button("Favoritar", "favourite/add/{$event->image->id}");
             }
         }
     }
@@ -80,8 +80,8 @@ final class Favorites extends Extension
         $h_favorites_rate = sprintf("%.1f", ($i_favorites_count / $i_days_old));
         $favorites_link = search_link(["favorited_by={$event->display_user->name}"]);
         $event->add_part(emptyHTML(
-            A(["href" => $favorites_link], "Posts favorited"),
-            ": $i_favorites_count, $h_favorites_rate per day"
+            A(["href" => $favorites_link], "Posts favoritados"),
+            ": $i_favorites_count, $h_favorites_rate por dia"
         ));
     }
 
@@ -163,8 +163,8 @@ final class Favorites extends Extension
     #[EventListener]
     public function onBulkActionBlockBuilding(BulkActionBlockBuildingEvent $event): void
     {
-        $event->add_action("favorite", "Favorite", permission: FavouritesPermission::EDIT_FAVOURITES);
-        $event->add_action("unfavorite", "Un-Favorite", permission: FavouritesPermission::EDIT_FAVOURITES);
+        $event->add_action("favorite", "Favoritar", permission: FavouritesPermission::EDIT_FAVOURITES);
+        $event->add_action("unfavorite", "Desfavoritar", permission: FavouritesPermission::EDIT_FAVOURITES);
     }
 
     #[EventListener]

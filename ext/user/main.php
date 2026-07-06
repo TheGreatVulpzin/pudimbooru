@@ -7,7 +7,7 @@ namespace Shimmie2;
 use GQLA\{Field, Mutation, Type};
 use MicroCRUD\{ActionColumn, DateColumn, EnumColumn, IntegerColumn, Table, TextColumn};
 
-use function MicroHTML\{A, P, emptyHTML};
+use function MicroHTML\{A, B, P, emptyHTML};
 
 use MicroHTML\HTMLElement;
 use Symfony\Component\Console\Input\InputOption;
@@ -34,9 +34,17 @@ final class UserActionColumn extends ActionColumn
     }
 }
 
+final class UserEmailVerifiedColumn extends TextColumn
+{
+    public function display(array $row): HTMLElement
+    {
+        return bool_escape($row[$this->name] ?? false) ? B("Sim") : emptyHTML("Não");
+    }
+}
+
 final class UserTable extends Table
 {
-    public function __construct(\FFSPHP\PDO $db)
+    public function __construct(\FFSPHP\PDO $db, bool $show_email_verified = false)
     {
         $classes = [];
         foreach (UserClass::$known_classes as $cls) {
@@ -52,6 +60,7 @@ final class UserTable extends Table
             new IntegerColumn("id", "ID"),
             new UserNameColumn("name", "Name"),
             new EnumColumn("class", "Class", $classes),
+            ...($show_email_verified && UserNotificationsInfo::is_enabled() ? [new UserEmailVerifiedColumn("email_verified", "Verificado")] : []),
             // Added later, for admins only
             // new TextColumn("email", "Email"),
             new DateColumn("joindate", "Join Date"),
@@ -190,6 +199,7 @@ final class UserPage extends Extension
             [
                 UserAccountsPermission::CREATE_USER => true,
                 UserAccountsPermission::SKIP_LOGIN_CAPTCHA => true,
+                PasswordResetPermission::REQUEST_PASSWORD_RESET => true,
             ],
             description: "The default class for people who are not logged in",
         );
@@ -228,6 +238,7 @@ final class UserPage extends Extension
                 ReportImagePermission::CREATE_IMAGE_REPORT => true,
                 TermsPermission::SKIP_TERMS => true,
                 UserAccountsPermission::CHANGE_USER_SETTING => true,
+                PasswordResetPermission::REQUEST_PASSWORD_RESET => true,
             ],
             description: "The default class for people who are logged in",
         );
@@ -294,7 +305,7 @@ final class UserPage extends Extension
             $page->flash("Created new user");
         }
         if ($event->page_matches("user_admin/list", method: "GET", permission: UserAccountsPermission::EDIT_USER_PASSWORD)) {
-            $t = new UserTable($database->raw_db());
+            $t = new UserTable($database->raw_db(), $user->class->name === "admin");
             $t->token = $user->get_auth_token();
             $t->inputs = $event->GET->toArray();
             if ($user->can(UserAccountsPermission::DELETE_USER)) {
@@ -327,10 +338,10 @@ final class UserPage extends Extension
             $pass2 = $event->POST->req('pass2');
             if ($this->user_can_edit_user($user, $duser)) {
                 if ($pass1 !== $pass2) {
-                    throw new InvalidInput("Passwords don't match");
+                    throw new InvalidInput("Senhas não coincidem");
                 } else {
-                    // FIXME: send_event()
                     $duser->set_password($pass1);
+                    send_event(new UserPasswordChangedEvent($duser, $user));
                     if ($duser->id === $user->id) {
                         $duser->set_login_cookie();
                     }
@@ -343,8 +354,21 @@ final class UserPage extends Extension
             $duser = User::by_id(int_escape($event->POST->req('id')));
             $address = $event->POST->req('address');
             if ($this->user_can_edit_user($user, $duser)) {
-                $duser->set_email($address);
-                $page->flash("Email changed");
+                if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
+                    throw new InvalidInput("Endereço de e-mail inválido");
+                }
+                if ($duser->email === $address && $duser->email_verified) {
+                    $page->flash("Este e-mail já está verificado.");
+                } else {
+                    $emailEvent = send_event(new UserEmailChangedEvent($duser, $user, $duser->email, $address));
+                    if ($emailEvent->verificationRateLimited) {
+                        $page->flash("Aguarde 10 minutos antes de reenviar o e-mail de verificação.");
+                    } elseif ($emailEvent->verificationSent) {
+                        $page->flash("Enviamos um e-mail para você verificar a conta. O endereço só será alterado depois da confirmação.");
+                    } else {
+                        $page->flash("Não foi possível enviar o e-mail de verificação. Confira os logs do sistema.");
+                    }
+                }
                 $this->redirect_to_user($duser);
             }
         }
@@ -370,7 +394,7 @@ final class UserPage extends Extension
         if ($event->page_matches("user/{name}")) {
             $display_user = User::by_name($event->get_arg('name'));
             if ($display_user->id === Ctx::$config->get(UserAccountsConfig::ANON_ID)) {
-                throw new UserNotFound("No such user");
+                throw new UserNotFound("usuário não encontrado");
             }
             $e = send_event(new UserPageBuildingEvent($display_user));
             $this->display_stats($e);
@@ -385,9 +409,9 @@ final class UserPage extends Extension
         $duser = $event->display_user;
         $class = $duser->class;
 
-        $event->add_part(emptyHTML("Joined: ", SHM_DATE($duser->join_date)), 10);
+        $event->add_part(emptyHTML("Entrou: ", SHM_DATE($duser->join_date)), 10);
         if (Ctx::$user->name === $duser->name) {
-            $event->add_part(emptyHTML("Current IP: " . Network::get_real_ip()), 80);
+            $event->add_part(emptyHTML("IP Atual: " . Network::get_real_ip()), 80);
         }
         $event->add_part(emptyHTML("Class: {$class->name}"), 90);
 
@@ -398,12 +422,12 @@ final class UserPage extends Extension
             $event->add_part($av, 0);
         } elseif ($duser->id === Ctx::$user->id) {
             if (AvatarPostInfo::is_enabled() || AvatarGravatarInfo::is_enabled()) {
-                $part = emptyHTML(P("No avatar?"));
+                $part = emptyHTML(P("Sem avatar?"));
                 if (AvatarPostInfo::is_enabled()) {
                     $part->appendChild(P(
-                        "You can set any post as avatar by clicking \"Set Image As Avatar\" in ",
-                        "the Post Controls on any post, or by setting it manually in your ",
-                        A(["href" => make_link("user_config")], "user config")
+                        "Você pode colocar qualquer post como avatar clicando \"Definir como Avatar\" em ",
+                        "nos controles de posts em qualquer post, ou definindo manualmente nas suas ",
+                        A(["href" => make_link("user_config")], "configurações de usuário")
                     ));
                 }
                 if (AvatarGravatarInfo::is_enabled()) {
@@ -431,16 +455,16 @@ final class UserPage extends Extension
     private function validate_user_name(string $input): string
     {
         if (strlen($input) < 1) {
-            throw new InvalidInput("Username must be at least 1 character");
+            throw new InvalidInput("Username deve ser pelo menos 1 caractere");
         } elseif (!\Safe\preg_match('/^[a-zA-Z0-9-_]+$/', $input)) {
             throw new InvalidInput(
-                "Username contains invalid characters. Allowed characters are ".
-                "letters, numbers, dash, and underscore"
+                "Usuário contém caracteres inválidos. Caracteres permitidos são ".
+                "letras, números, hífen, e underline"
             );
         }
         try {
             User::by_name($input);
-            throw new InvalidInput("That username is already taken");
+            throw new InvalidInput("Este username já existe");
         } catch (UserNotFound $ex) {
             // user not found is good
         }
@@ -453,22 +477,20 @@ final class UserPage extends Extension
 
         $this->theme->display_user_page($event->display_user, $event->get_parts());
 
-        if (!$user->is_anonymous()) {
-            if ($user->id === $event->display_user->id || $user->can("edit_user_info")) {
-                $uobe = send_event(new UserOperationsBuildingEvent($event->display_user, $event->display_user->get_config()));
-                Ctx::$page->add_block(new Block("Operations", $this->theme->build_operations($event->display_user, $uobe), "main", 60));
-            }
+        $is_self = $user->id === $event->display_user->id;
+
+        if (!$is_self && $this->user_can_view_operations($user, $event->display_user)) {
+            $uobe = send_event(new UserOperationsBuildingEvent($event->display_user, $event->display_user->get_config()));
+            Ctx::$page->add_block(new Block("Operations", $this->theme->build_operations($event->display_user, $uobe), "main", 60));
         }
 
-        if ($user->id === $event->display_user->id) {
+        if ($is_self) {
             $ubbe = send_event(new UserBlockBuildingEvent());
             $this->theme->display_user_links($user, $ubbe->get_parts());
         }
         if (
-            (
-                $user->can(IPBanPermission::VIEW_IP) ||  # user can view all IPS
-                ($user->id === $event->display_user->id)  # or user is viewing themselves
-            ) &&
+            $user->can(IPBanPermission::VIEW_IP) &&
+            !$is_self &&
             ($event->display_user->id !== Ctx::$config->get(UserAccountsConfig::ANON_ID)) # don't show anon's IP list, it is le huge
         ) {
             $this->theme->display_ip_list(
@@ -563,6 +585,9 @@ final class UserPage extends Extension
         }
 
         $event->set_user($new_user);
+        if ($new_user->email !== null && $new_user->email !== "") {
+            send_event(new UserEmailChangedEvent($new_user, Ctx::$user, null, $new_user->email, "user_creation"));
+        }
     }
 
     public const USER_SEARCH_REGEX = "/^(?:poster|user)(!?)[=:](.*)$/i";
@@ -649,12 +674,12 @@ final class UserPage extends Extension
 
     private function page_recover(string $username): void
     {
-        $my_user = User::by_name($username);
-        if (is_null($my_user->email)) {
-            throw new InvalidInput("That user has no registered email address");
-        } else {
-            throw new ServerError("Email sending not implemented");
+        if (PasswordResetInfo::is_enabled()) {
+            send_event(new PasswordResetRequestEvent($username));
+            return;
         }
+
+        throw new ServerError("Email sending not implemented");
     }
 
     private function user_can_edit_user(User $a, User $b): bool
@@ -663,15 +688,23 @@ final class UserPage extends Extension
             throw new PermissionDenied("You aren't logged in");
         }
 
-        if (
-            ($a->name === $b->name) ||
-            ($b->can(UserAccountsPermission::PROTECTED) && $a->class->name === "admin") ||
-            (!$b->can(UserAccountsPermission::PROTECTED) && $a->can(UserAccountsPermission::EDIT_USER_INFO))
-        ) {
+        if ($this->user_can_view_operations($a, $b)) {
             return true;
         } else {
             throw new PermissionDenied("You need to be an admin to change other people's details");
         }
+    }
+
+    private function user_can_view_operations(User $viewer, User $display_user): bool
+    {
+        if ($viewer->is_anonymous()) {
+            return false;
+        }
+
+        return
+            $viewer->name === $display_user->name ||
+            ($display_user->can(UserAccountsPermission::PROTECTED) && $viewer->class->name === "admin") ||
+            (!$display_user->can(UserAccountsPermission::PROTECTED) && $viewer->can(UserAccountsPermission::EDIT_USER_INFO));
     }
 
     private function redirect_to_user(User $duser): void

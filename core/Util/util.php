@@ -247,6 +247,10 @@ function _load_theme_files(): void
 {
     $span = Ctx::$tracer->startSpan("Load Theme Files");
     $theme = get_theme();
+    $locale = 'themes/'.$theme.'/locale.php';
+    if (file_exists($locale)) {
+        require_once($locale);
+    }
     require_once('themes/'.$theme.'/page.class.php');
     require_all(Filesystem::zglob('themes/'.$theme.'/*.theme.php'));
     $span->end();

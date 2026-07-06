@@ -24,6 +24,13 @@ class UserConfigEditorTheme extends Themelet
     {
         usort($config_blocks, Block::cmp(...));
 
+        Ctx::$page->set_title("User Options");
+        $this->display_navigation();
+
+        if (count($config_blocks) === 0) {
+            return;
+        }
+
         $blocks = DIV(["class" => "setupblocks"]);
         foreach ($config_blocks as $block) {
             $blocks->appendChild($this->sb_to_html($block));
@@ -36,8 +43,6 @@ class UserConfigEditorTheme extends Themelet
             INPUT(['class' => 'setupsubmit', 'type' => 'submit', 'value' => 'Save Settings'])
         );
 
-        Ctx::$page->set_title("User Options");
-        $this->display_navigation();
         Ctx::$page->add_block(new Block(null, $table, id: "Setupmain"));
     }
 

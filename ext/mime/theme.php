@@ -16,14 +16,14 @@ class MimeSystemTheme extends Themelet
         $mimes = DataHandlerExtension::get_all_supported_mimes();
         $exts = array_map(fn ($mime) => FileExtension::get_for_mime($mime), $mimes);
         return emptyHTML(
-            P("Search for posts by extension"),
-            SHM_COMMAND_EXAMPLE("ext=jpg", "Returns posts with the extension 'jpg'"),
-            P("These extensions are available in the system:"),
+            P("Busque por posts pela extensão"),
+            SHM_COMMAND_EXAMPLE("ext=jpg", "Pesquisa por posts com a extensão 'jpg'"),
+            P("Essas extensão estão disponíveis no sistema:"),
             UL(joinHTML(", ", $exts)),
             HR(),
-            P("Search for posts by MIME type"),
-            SHM_COMMAND_EXAMPLE("mime=image/jpeg", "Returns posts that have the MIME type 'image/jpeg'"),
-            P("These MIME types are available in the system:"),
+            P("Procure por posts pelo tipo de MIME"),
+            SHM_COMMAND_EXAMPLE("mime=image/jpeg", "Pesquisa por posts com o tipo de MIME 'image/jpeg'"),
+            P("Esses tipos MIME estão disponíveis no sistema:"),
             UL(joinHTML(", ", array_map(fn ($mime) => (string)$mime, $mimes))),
         );
     }

@@ -16,8 +16,19 @@ use function MicroHTML\{TABLE, TD, TFOOT, TH, THEAD, TR};
  */
 function SHM_DATE(string $date, bool $html = true): HTMLElement
 {
-    $cpu = date('c', \Safe\strtotime($date));
-    $hum = date('F j, Y; H:i', \Safe\strtotime($date));
+    $timestamp = \Safe\strtotime($date);
+    $cpu = date('c', $timestamp);
+    if (class_exists(\IntlDateFormatter::class)) {
+        $formatter = new \IntlDateFormatter(
+            'pt_BR',
+            \IntlDateFormatter::LONG,
+            \IntlDateFormatter::SHORT,
+            date_default_timezone_get(),
+        );
+        $hum = $formatter->format($timestamp) ?: date('d/m/Y H:i', $timestamp);
+    } else {
+        $hum = date('d/m/Y H:i', $timestamp);
+    }
     return ($html ? TIME(["datetime" => $cpu], $hum) : emptyHTML($hum));
 }
 

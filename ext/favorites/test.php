@@ -30,7 +30,7 @@ final class FavoritesTest extends ShimmiePHPUnitTestCase
 
         # Favourite shown on user page
         self::get_page("user/test");
-        self::assert_text("Posts favorited</a>: 1");
+        self::assert_text("Posts favoritados</a>: 1");
 
         # Delete a favourite
         send_event(new FavoriteSetEvent($image_id, Ctx::$user, false));

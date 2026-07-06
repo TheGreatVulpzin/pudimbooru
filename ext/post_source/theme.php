@@ -23,7 +23,7 @@ class PostSourceTheme extends Themelet
     public function get_source_editor_html(Post $image): HTMLElement
     {
         return SHM_POST_INFO(
-            "Source Link",
+            "Link da Fonte",
             DIV(
                 ["style" => "overflow: hidden; white-space: nowrap; max-width: 350px; text-overflow: ellipsis;"],
                 $this->format_source($image->get_source())
@@ -52,7 +52,7 @@ class PostSourceTheme extends Themelet
     public function get_upload_common_html(): HTMLElement
     {
         return TR(
-            TH(["width" => "20"], "Common Source"),
+            TH(["width" => "20"], "Fontes Comuns"),
             TD(["colspan" => "6"], INPUT(["name" => "source", "type" => "text", "placeholder" => "https://..."]))
         );
     }

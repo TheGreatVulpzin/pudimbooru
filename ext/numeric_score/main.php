@@ -118,10 +118,6 @@ final class NumericScore extends Extension
     #[EventListener]
     public function onUserPageBuilding(UserPageBuildingEvent $event): void
     {
-        if (Ctx::$user->can(NumericScorePermission::EDIT_OTHER_VOTE)) {
-            $this->theme->get_nuller($event->display_user);
-        }
-
         $n_up = Search::count_posts(["upvoted_by={$event->display_user->name}"]);
         $link_up = search_link(["upvoted_by={$event->display_user->name}"]);
         $n_down = Search::count_posts(["downvoted_by={$event->display_user->name}"]);
@@ -131,6 +127,14 @@ final class NumericScore extends Extension
             " / ",
             A(["href" => $link_down], "$n_down Downvotes"),
         ));
+    }
+
+    #[EventListener]
+    public function onUserOperationsBuilding(UserOperationsBuildingEvent $event): void
+    {
+        if (Ctx::$user->can(NumericScorePermission::EDIT_OTHER_VOTE)) {
+            $event->add_part($this->theme->get_nuller($event->user), 80);
+        }
     }
 
     #[EventListener]

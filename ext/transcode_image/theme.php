@@ -21,7 +21,7 @@ class TranscodeImageTheme extends Themelet
             children: [
                 INPUT(["type" => "hidden", "id" => "image_lossless", "name" => "image_lossless", "value" => $image->lossless ? "true" : "false"]),
                 $this->get_transcode_picker_html($options),
-                SHM_SUBMIT("Transcode Image"),
+                SHM_SUBMIT("Transcodar Imagem"),
             ]
         );
     }

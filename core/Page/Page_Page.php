@@ -120,6 +120,7 @@ trait Page_Page
         $this->add_html_header(LINK([
             'rel' => 'icon',
             'type' => 'image/x-icon',
+            'sizes' => '16x16',
             'href' => "$data_href/favicon.ico"
         ]), 41);
         $this->add_html_header(LINK([

@@ -37,7 +37,7 @@ final class ResizeImage extends Extension
                     BR(),
                     LABEL(
                         INPUT(["type" => "checkbox", "id" => "resize_aspect", "name" => "resize_aspect", "style" => "max-width: 20px;", "checked" => true]),
-                        " Keep Aspect"
+                        " Manter proporção"
                     ),
                     BR(),
                     INPUT(["id" => "resizebutton", "type" => "submit", "value" => "Resize"]),

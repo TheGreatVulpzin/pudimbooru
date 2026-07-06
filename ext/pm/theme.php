@@ -35,10 +35,10 @@ class PrivMsgTheme extends Themelet
         }
         $html = TABLE(
             ["id" => "pms", "class" => "zebra"],
-            THEAD(TR(TH("R?"), TH("Subject"), TH("From"), TH("Date"), TH("Action"))),
+            THEAD(TR(TH("R?"), TH("Assunto"), TH("De"), TH("Data"), TH("Ação"))),
             $tbody
         );
-        Ctx::$page->add_block(new Block("Private Messages", $html, "main", 40, "private-messages"));
+        Ctx::$page->add_block(new Block("Mensagens Privadas", $html, "main", 40, "private-messages"));
     }
 
     public function display_composer(User $from, User $to, string $subject = ""): void

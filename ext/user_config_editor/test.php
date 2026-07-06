@@ -17,6 +17,9 @@ final class UserConfigEditorTest extends ShimmiePHPUnitTestCase
         self::log_in_as_user();
         self::get_page('user_config');
         self::assert_title(self::OPTIONS_BLOCK_TITLE);
+        self::assert_text("Operations");
+        self::assert_text("Mudar Senha");
+        self::assert_text("Mudar Email");
         self::log_out();
     }
 }

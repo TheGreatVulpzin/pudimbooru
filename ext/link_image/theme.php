@@ -22,39 +22,39 @@ class LinkImageTheme extends Themelet
 
         $html = TABLE(TR(
             TD(FIELDSET(
-                LEGEND(A(["href" => "https://en.wikipedia.org/wiki/Bbcode", "target" => "_blank"], "BBCode")),
+                LEGEND(A(["href" => "https://pt.wikipedia.org/wiki/Bbcode", "target" => "_blank"], "BBCode")),
                 TABLE(
                     $this->link_code("Link", $this->url($post_link, $text_link, "ubb"), "ubb_text-link"),
-                    $this->link_code("Thumb", $this->url($post_link, $this->img($thumb_src, "ubb"), "ubb"), "ubb_thumb-link"),
-                    $this->link_code("File", $this->img($image_src, "ubb"), "ubb_full-img"),
+                    $this->link_code("Miniatura", $this->url($post_link, $this->img($thumb_src, "ubb"), "ubb"), "ubb_thumb-link"),
+                    $this->link_code("Arquivo", $this->img($image_src, "ubb"), "ubb_full-img"),
                 )
             )),
             TD(FIELDSET(
-                LEGEND(A(["href" => "https://en.wikipedia.org/wiki/Html", "target" => "_blank"], "HTML")),
+                LEGEND(A(["href" => "https://pt.wikipedia.org/wiki/Html", "target" => "_blank"], "HTML")),
                 TABLE(
                     $this->link_code("Link", $this->url($post_link, $text_link, "html"), "html_text-link"),
-                    $this->link_code("Thumb", $this->url($post_link, $this->img($thumb_src, "html"), "html"), "html_thumb-link"),
-                    $this->link_code("File", $this->img($image_src, "html"), "html_full-img"),
+                    $this->link_code("Miniatura", $this->url($post_link, $this->img($thumb_src, "html"), "html"), "html_thumb-link"),
+                    $this->link_code("Arquivo", $this->img($image_src, "html"), "html_full-img"),
                 )
             )),
             TD(FIELDSET(
-                LEGEND(A(["href" => "https://en.wikipedia.org/wiki/Markdown", "target" => "_blank"], "Markdown")),
+                LEGEND(A(["href" => "https://pt.wikipedia.org/wiki/Markdown", "target" => "_blank"], "Markdown")),
                 TABLE(
                     $this->link_code("Link", $this->url($post_link, $text_link, "markdown"), "markdown_text-link"),
-                    $this->link_code("Thumb", $this->url($post_link, $this->img($thumb_src, "markdown"), "markdown"), "markdown_thumb-link"),
-                    $this->link_code("File", $this->img($image_src, "markdown"), "markdown_full-img"),
+                    $this->link_code("Miniatura", $this->url($post_link, $this->img($thumb_src, "markdown"), "markdown"), "markdown_thumb-link"),
+                    $this->link_code("Arquivo", $this->img($image_src, "markdown"), "markdown_full-img"),
                 )
             )),
             TD(FIELDSET(
-                LEGEND("Plain Text"),
+                LEGEND("Texto Normal"),
                 TABLE(
                     $this->link_code("Link", (string)$post_link, "text_post-link"),
-                    $this->link_code("Thumb", (string)$thumb_src, "text_thumb-url"),
-                    $this->link_code("File", (string)$image_src, "text_image-src"),
+                    $this->link_code("Miniatura", (string)$thumb_src, "text_thumb-url"),
+                    $this->link_code("Arquivo", (string)$image_src, "text_image-src"),
                 )
             )),
         ));
-        Ctx::$page->add_block(new Block("Link to Post", $html, "main", 50));
+        Ctx::$page->add_block(new Block("Link para o Post", $html, "main", 50));
     }
 
     protected function url(Url $url, ?string $content, string $type): string
@@ -86,7 +86,7 @@ class LinkImageTheme extends Themelet
         return	TR(
             TD(
                 LABEL(
-                    ["for" => $id, "title" => "Click to select the textbox"],
+                    ["for" => $id, "title" => "Clique para selecionar a caixa de texto"],
                     $label,
                 )
             ),

@@ -14,24 +14,32 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
-    /** time-ago dates **/
+    /** time-ago dates (pt-BR com offset -3 horas) **/
     function updateTimeAgo() {
         const CUTOFF_MS = 365 * 24 * 60 * 60 * 1000; // 1 year in milliseconds
         const now = new Date();
 
         document.querySelectorAll("time[datetime]").forEach((timeElement) => {
-            const datetime = timeElement.getAttribute("datetime");
+            let datetime = timeElement.getAttribute("datetime");
             if (!datetime) return;
 
-            const date = new Date(datetime);
-            const diff = now - date;
-
-            // If older than 1 year, keep the original text
-            if (diff > CUTOFF_MS) {
-                return;
+            // Força interpretação como UTC (adiciona 'Z' se não tiver timezone)
+            let date;
+            if (datetime.match(/Z|[+-]\d{2}:\d{2}/)) {
+                date = new Date(datetime);
+            } else {
+                date = new Date(datetime + 'Z');
             }
 
-            // Calculate relative time
+            // Aplica offset manual de +3 horas (ajuste para o fuso local do servidor)
+            date.setHours(date.getHours() + 3);
+
+            const diff = now - date;
+
+            // Se for mais velho que 1 ano, mantém o texto original
+            if (diff > CUTOFF_MS) return;
+
+            // Calcula o texto relativo
             const seconds = Math.floor(diff / 1000);
             const minutes = Math.floor(seconds / 60);
             const hours = Math.floor(minutes / 60);
@@ -41,27 +49,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let timeAgoText;
             if (seconds < 45) {
-                timeAgoText = "a few seconds ago";
+                timeAgoText = "há alguns segundos";
             } else if (seconds < 90) {
-                timeAgoText = "a minute ago";
+                timeAgoText = "há um minuto";
             } else if (minutes < 45) {
-                timeAgoText = minutes + " minutes ago";
+                timeAgoText = "há " + minutes + " minutos";
             } else if (minutes < 90) {
-                timeAgoText = "an hour ago";
+                timeAgoText = "há uma hora";
             } else if (hours < 24) {
-                timeAgoText = hours + " hours ago";
+                timeAgoText = "há " + hours + " horas";
             } else if (hours < 48) {
-                timeAgoText = "a day ago";
+                timeAgoText = "há um dia";
             } else if (days < 7) {
-                timeAgoText = days + " days ago";
+                timeAgoText = "há " + days + " dias";
             } else if (days < 14) {
-                timeAgoText = "a week ago";
+                timeAgoText = "há uma semana";
             } else if (days < 30) {
-                timeAgoText = weeks + " weeks ago";
+                timeAgoText = "há " + weeks + " semanas";
             } else if (days < 60) {
-                timeAgoText = "a month ago";
+                timeAgoText = "há um mês";
             } else {
-                timeAgoText = months + " months ago";
+                timeAgoText = "há " + months + " meses";
             }
 
             timeElement.textContent = timeAgoText;

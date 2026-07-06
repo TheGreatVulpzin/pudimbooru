@@ -25,6 +25,12 @@ final class Approval extends Extension
         Ctx::$cache->delete("pending-count");
     }
 
+    #[EventListener(priority: 5)]
+    public function onPostDeletion(PostDeletionEvent $event): void
+    {
+        Ctx::$cache->delete("pending-count");
+    }
+
     #[EventListener]
     public function onPageRequest(PageRequestEvent $event): void
     {
@@ -92,7 +98,7 @@ final class Approval extends Extension
             if (!Ctx::$user->is_anonymous()) {
                 $count = $this->count_pending();
                 $h_count = $count > 0 ? " ($count)" : "";
-                $event->add_nav_link(search_link(['approved=no']), "Pending Approval$h_count", order: 60);
+                $event->add_nav_link(search_link(['approved=no']), "Aprovação Pendente$h_count", order: 60);
             }
         }
     }
@@ -103,7 +109,7 @@ final class Approval extends Extension
         if (!Ctx::$user->is_anonymous()) {
             $count = $this->count_pending();
             $h_count = $count > 0 ? " ($count)" : "";
-            $event->add_link("Pending Approval$h_count", search_link(["approved=no"]), 60);
+            $event->add_link("Aprovação Pendente$h_count", search_link(["approved=no"]), 60);
         }
     }
 
@@ -155,6 +161,9 @@ final class Approval extends Extension
     {
         foreach ($context as $term) {
             if (\Safe\preg_match(self::SEARCH_REGEXP, $term)) {
+                return false;
+            }
+            if (TrashInfo::is_enabled() && \Safe\preg_match(Trash::SEARCH_REGEXP, $term)) {
                 return false;
             }
         }
@@ -273,18 +282,20 @@ final class Approval extends Extension
 
     public function count_pending(): int
     {
+        $trash_clause = TrashInfo::is_enabled() ? " AND trash != TRUE" : "";
+
         // Admins can see all unapproved posts
         if (Ctx::$user->can(ApprovalPermission::APPROVE_IMAGE)) {
             return (int)cache_get_or_set(
                 "pending-count",
-                fn () => Ctx::$database->get_one("SELECT count(*) FROM images WHERE approved = FALSE"),
+                fn () => Ctx::$database->get_one("SELECT count(*) FROM images WHERE approved = FALSE$trash_clause"),
                 600
             );
         }
         // Regular users can see their own unapproved posts
         elseif (!Ctx::$user->is_anonymous()) {
             return Ctx::$database->get_one(
-                "SELECT count(*) FROM images WHERE approved = FALSE AND owner_id = :approval_owner_id",
+                "SELECT count(*) FROM images WHERE approved = FALSE AND owner_id = :approval_owner_id$trash_clause",
                 ["approval_owner_id" => Ctx::$user->id]
             );
         } else {

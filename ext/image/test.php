@@ -13,7 +13,7 @@ final class ImageIOTest extends ShimmiePHPUnitTestCase
 
         // broken with sqlite?
         self::get_page("user/test");
-        self::assert_text("Posts uploaded</a>: 1");
+        self::assert_text("Posts enviados</a>: 1");
     }
 
     public function testServeImage(): void
