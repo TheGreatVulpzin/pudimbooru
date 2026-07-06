@@ -479,7 +479,7 @@ final class UserPage extends Extension
 
         $is_self = $user->id === $event->display_user->id;
 
-        if (!$user->is_anonymous() && !$is_self && $user->can("edit_user_info")) {
+        if (!$is_self && $this->user_can_view_operations($user, $event->display_user)) {
             $uobe = send_event(new UserOperationsBuildingEvent($event->display_user, $event->display_user->get_config()));
             Ctx::$page->add_block(new Block("Operations", $this->theme->build_operations($event->display_user, $uobe), "main", 60));
         }
@@ -688,15 +688,23 @@ final class UserPage extends Extension
             throw new PermissionDenied("You aren't logged in");
         }
 
-        if (
-            ($a->name === $b->name) ||
-            ($b->can(UserAccountsPermission::PROTECTED) && $a->class->name === "admin") ||
-            (!$b->can(UserAccountsPermission::PROTECTED) && $a->can(UserAccountsPermission::EDIT_USER_INFO))
-        ) {
+        if ($this->user_can_view_operations($a, $b)) {
             return true;
         } else {
             throw new PermissionDenied("You need to be an admin to change other people's details");
         }
+    }
+
+    private function user_can_view_operations(User $viewer, User $display_user): bool
+    {
+        if ($viewer->is_anonymous()) {
+            return false;
+        }
+
+        return
+            $viewer->name === $display_user->name ||
+            ($display_user->can(UserAccountsPermission::PROTECTED) && $viewer->class->name === "admin") ||
+            (!$display_user->can(UserAccountsPermission::PROTECTED) && $viewer->can(UserAccountsPermission::EDIT_USER_INFO));
     }
 
     private function redirect_to_user(User $duser): void
