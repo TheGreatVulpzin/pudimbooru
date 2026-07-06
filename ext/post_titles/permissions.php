@@ -17,6 +17,6 @@ final class PostTitlesPermission extends PermissionGroup
     public static function can_edit_image_title(User $user, Post $image): bool
     {
         return $user->can(self::EDIT_IMAGE_TITLE) ||
-            ($image->owner_id === $user->id && $user->can(self::EDIT_OWN_IMAGE_TITLE));
+            ($image->is_owned_by($user) && $user->can(self::EDIT_OWN_IMAGE_TITLE));
     }
 }

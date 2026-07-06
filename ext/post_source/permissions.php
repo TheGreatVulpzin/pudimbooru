@@ -20,6 +20,6 @@ final class PostSourcePermission extends PermissionGroup
     public static function can_edit_image_source(User $user, Post $image): bool
     {
         return $user->can(self::EDIT_IMAGE_SOURCE) ||
-            ($image->owner_id === $user->id && $user->can(self::EDIT_OWN_IMAGE_SOURCE));
+            ($image->is_owned_by($user) && $user->can(self::EDIT_OWN_IMAGE_SOURCE));
     }
 }

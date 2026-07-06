@@ -268,6 +268,15 @@ final class Post implements \ArrayAccess
         return User::by_id($this->owner_id);
     }
 
+    public function is_owned_by(User $user): bool
+    {
+        if (isset($this->owner_id)) {
+            return $this->owner_id === $user->id;
+        }
+
+        return !$this->in_db && !$user->is_anonymous();
+    }
+
     /**
      * Set the image's owner.
      */
@@ -302,9 +311,13 @@ final class Post implements \ArrayAccess
             "length" => $this->length
         ];
         if (!$this->in_db) {
-            $props_to_save["owner_id"] = Ctx::$user->id;
-            $props_to_save["owner_ip"] = (string)Network::get_real_ip();
-            $props_to_save["posted"] = date('Y-m-d H:i:s', time());
+            $this->owner_id = Ctx::$user->id;
+            $this->owner_ip = (string)Network::get_real_ip();
+            $this->posted = date('Y-m-d H:i:s', time());
+
+            $props_to_save["owner_id"] = $this->owner_id;
+            $props_to_save["owner_ip"] = $this->owner_ip;
+            $props_to_save["posted"] = $this->posted;
 
             $props_sql = implode(", ", array_keys($props_to_save));
             $vals_sql = implode(", ", array_map(fn ($prop) => ":$prop", array_keys($props_to_save)));

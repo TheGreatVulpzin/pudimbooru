@@ -23,6 +23,6 @@ final class PostTagsPermission extends PermissionGroup
     public static function can_edit_image_tag(User $user, Post $image): bool
     {
         return $user->can(self::EDIT_IMAGE_TAG) ||
-            ($image->owner_id === $user->id && $user->can(self::EDIT_OWN_IMAGE_TAG));
+            ($image->is_owned_by($user) && $user->can(self::EDIT_OWN_IMAGE_TAG));
     }
 }
