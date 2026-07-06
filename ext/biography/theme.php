@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Shimmie2;
 
+use MicroHTML\HTMLElement;
+
 use function MicroHTML\{TABLE, TD, TR};
 use function MicroHTML\{TEXTAREA};
 
@@ -16,6 +18,11 @@ class BiographyTheme extends Themelet
 
     public function display_composer(User $duser, string $bio): void
     {
+        Ctx::$page->add_block(new Block("Sobre mim", $this->get_composer($duser, $bio), "main", 30));
+    }
+
+    public function get_composer(User $duser, string $bio): HTMLElement
+    {
         $html = SHM_SIMPLE_FORM(
             make_link("user/{$duser->name}/biography"),
             TABLE(
@@ -25,6 +32,6 @@ class BiographyTheme extends Themelet
             ),
         );
 
-        Ctx::$page->add_block(new Block("Sobre mim", $html, "main", 30));
+        return $html;
     }
 }

@@ -489,10 +489,8 @@ final class UserPage extends Extension
             $this->theme->display_user_links($user, $ubbe->get_parts());
         }
         if (
-            (
-                $user->can(IPBanPermission::VIEW_IP) ||  # user can view all IPS
-                $is_self  # or user is viewing themselves
-            ) &&
+            $user->can(IPBanPermission::VIEW_IP) &&
+            !$is_self &&
             ($event->display_user->id !== Ctx::$config->get(UserAccountsConfig::ANON_ID)) # don't show anon's IP list, it is le huge
         ) {
             $this->theme->display_ip_list(
