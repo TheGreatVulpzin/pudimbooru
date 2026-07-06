@@ -14,6 +14,14 @@ final class UserNotifications extends Extension
     private const VERIFICATION_RESEND_COOLDOWN_MINUTES = 10;
 
     #[EventListener]
+    public function onUserLogin(UserLoginEvent $event): void
+    {
+        if ($event->user->email !== null && $event->user->email !== "" && !$event->user->email_verified) {
+            Ctx::$page->flash("Seu e-mail ainda nao foi verificado. Verifique sua caixa de entrada ou reenvie a verificacao pelo seu perfil.");
+        }
+    }
+
+    #[EventListener]
     public function onDatabaseUpgrade(DatabaseUpgradeEvent $event): void
     {
         $database = Ctx::$database;
@@ -144,6 +152,13 @@ final class UserNotifications extends Extension
         }
 
         $event->verificationSent = $this->sendVerificationEmail($event->user, $event->newEmail);
+        if ($event->source === "user_creation" && $event->user->id === Ctx::$user->id) {
+            Ctx::$page->flash(
+                $event->verificationSent
+                    ? "Enviamos um e-mail de verificacao. Confirme seu e-mail para ativar a verificacao da conta."
+                    : "Nao foi possivel enviar o e-mail de verificacao. Confira os logs do sistema."
+            );
+        }
         Log::info("user_notifications", "Email verification pending for user #{$event->user->id}");
     }
 
