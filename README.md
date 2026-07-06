@@ -14,6 +14,8 @@
 Seja bem-vindo ao repositório do Pudimbooru, um fork do [Shimmie2](https://github.com/shish/shimmie2) com as seguintes personalizações:
 
 - **Tradução para Português** – Suporte a internacionalização via `PudimbooruLocale` (strings em português) (salvo a algumas partes que eu perdi a paciência e traduzi diretamente)
+- **Sistema de E-mail** - Adiciona um tão necessário sistema de email com suporte de SMTP mais uma extensão para notificações!
+- **Recuperação de Senha** - Deixa você conseguir enviar um e-mail de recuperação de senha!
 - **Tema Visual** – Aparência adaptada para o estilo bem pudinesco, yummers!
 - **Counter8** - Um counter customizado do universo do cazum8!
 
