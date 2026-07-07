@@ -136,7 +136,13 @@ class ViewPostTheme extends Themelet
 
         if (
             (!$image->is_locked() || Ctx::$user->can(PostLockPermission::EDIT_IMAGE_LOCK)) &&
-            Ctx::$user->can(PostTagsPermission::EDIT_IMAGE_TAG)
+            (
+                PostTagsPermission::can_edit_image_tag(Ctx::$user, $image) ||
+                PostSourcePermission::can_edit_image_source(Ctx::$user, $image) ||
+                PostTitlesPermission::can_edit_image_title(Ctx::$user, $image) ||
+                PostDescriptionPermission::can_edit_image_descriptions(Ctx::$user, $image) ||
+                RelationshipsPermission::can_edit_image_relationships(Ctx::$user, $image)
+            )
         ) {
             $editor_parts[] = TR(TD(
                 ["colspan" => 4],
@@ -171,7 +177,7 @@ class ViewPostTheme extends Themelet
     protected function build_stats(Post $image): HTMLElement
     {
         $owner = $image->get_owner()->name;
-        $ip = Ctx::$user->can(IPBanPermission::VIEW_IP) ? " ({$image->owner_ip})" : "";
+        $ip = Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS) ? " ({$image->owner_ip})" : "";
 
         $parts = [
             "ID: {$image->id}",

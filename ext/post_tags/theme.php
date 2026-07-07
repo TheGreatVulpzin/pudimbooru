@@ -34,7 +34,7 @@ class PostTagsTheme extends Themelet
         return SHM_POST_INFO(
             "Tags",
             joinHTML(", ", $tag_links),
-            Ctx::$user->can(PostTagsPermission::EDIT_IMAGE_TAG) ? TEXTAREA([
+            PostTagsPermission::can_edit_image_tag(Ctx::$user, $image) ? TEXTAREA([
                 "class" => "autocomplete_tags",
                 "type" => "text",
                 "name" => "tags",

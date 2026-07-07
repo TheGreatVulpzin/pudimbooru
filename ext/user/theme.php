@@ -243,7 +243,7 @@ class UserPageTheme extends Themelet
 
         // just a fool-admin protection so they dont mess around with anon users.
         if ($duser->id !== Ctx::$config->get(UserAccountsConfig::ANON_ID)) {
-            if (Ctx::$user->can(UserAccountsPermission::EDIT_USER_NAME)) {
+            if (UserAccountsPermission::can_manage_user(Ctx::$user, $duser, UserAccountsPermission::EDIT_USER_NAME)) {
                 $html->appendChild(SHM_USER_FORM(
                     $duser,
                     make_link("user_admin/change_name"),
@@ -256,35 +256,39 @@ class UserPageTheme extends Themelet
                 ));
             }
 
-            $html->appendChild(SHM_USER_FORM(
-                $duser,
-                make_link("user_admin/change_pass"),
-                "Mudar Senha",
-                TBODY(
-                    TR(
-                        TH("Senha nova"),
-                        TD(INPUT(["type" => 'password', "name" => 'pass1', "autocomplete" => 'new-password']))
+            if (UserAccountsPermission::can_manage_user(Ctx::$user, $duser, UserAccountsPermission::EDIT_USER_PASSWORD)) {
+                $html->appendChild(SHM_USER_FORM(
+                    $duser,
+                    make_link("user_admin/change_pass"),
+                    "Mudar Senha",
+                    TBODY(
+                        TR(
+                            TH("Senha nova"),
+                            TD(INPUT(["type" => 'password', "name" => 'pass1', "autocomplete" => 'new-password']))
+                        ),
+                        TR(
+                            TH("Repetir senha nova"),
+                            TD(INPUT(["type" => 'password', "name" => 'pass2', "autocomplete" => 'new-password']))
+                        ),
                     ),
-                    TR(
-                        TH("Repetir senha nova"),
-                        TD(INPUT(["type" => 'password', "name" => 'pass2', "autocomplete" => 'new-password']))
-                    ),
-                ),
-                "Mudar"
-            ));
+                    "Mudar"
+                ));
+            }
 
-            $html->appendChild(SHM_USER_FORM(
-                $duser,
-                make_link("user_admin/change_email"),
-                "Mudar Email",
-                TBODY(TR(
-                    TH("Endereço de email"),
-                    TD(INPUT(["type" => 'text', "name" => 'address', "value" => $duser->email, "autocomplete" => 'email', "inputmode" => 'email']))
-                )),
-                "Mudar"
-            ));
+            if (UserAccountsPermission::can_manage_user(Ctx::$user, $duser, UserAccountsPermission::EDIT_USER_INFO)) {
+                $html->appendChild(SHM_USER_FORM(
+                    $duser,
+                    make_link("user_admin/change_email"),
+                    "Mudar Email",
+                    TBODY(TR(
+                        TH("Endereço de email"),
+                        TD(INPUT(["type" => 'text', "name" => 'address', "value" => $duser->email, "autocomplete" => 'email', "inputmode" => 'email']))
+                    )),
+                    "Mudar"
+                ));
+            }
 
-            if (Ctx::$user->can(UserAccountsPermission::EDIT_USER_CLASS)) {
+            if (UserAccountsPermission::can_manage_user(Ctx::$user, $duser, UserAccountsPermission::EDIT_USER_CLASS)) {
                 $select = SELECT(["name" => "class"]);
                 foreach (UserClass::$known_classes as $name => $values) {
                     $select->appendChild(
@@ -300,7 +304,7 @@ class UserPageTheme extends Themelet
                 ));
             }
 
-            if (Ctx::$user->can(UserAccountsPermission::DELETE_USER)) {
+            if (UserAccountsPermission::can_manage_user(Ctx::$user, $duser, UserAccountsPermission::DELETE_USER)) {
                 $html->appendChild(SHM_USER_FORM(
                     $duser,
                     make_link("user_admin/delete_user"),
@@ -329,7 +333,7 @@ class UserPageTheme extends Themelet
             P("Pesquisar por posts postados por indivíduos específicos."),
             SHM_COMMAND_EXAMPLE("poster=username", 'Pesquisa por posts postados por "username"'),
             // SHM_COMMAND_EXAMPLE("poster_id=123", 'Returns posts posted by user 123'),
-            Ctx::$user->can(IPBanPermission::VIEW_IP)
+            Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS)
                 ? SHM_COMMAND_EXAMPLE("poster_ip=127.0.0.1", "Returns posts posted from IP 127.0.0.1.")
                 : null
         );

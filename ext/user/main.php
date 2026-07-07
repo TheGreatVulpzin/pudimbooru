@@ -205,8 +205,7 @@ final class UserPage extends Extension
         );
 
         // Users can control themselves, upload new content,
-        // and do basic edits (tags, source, title) on other
-        // people's content
+        // and do basic edits on content that they own
         new UserClass(
             "user",
             "base",
@@ -227,14 +226,15 @@ final class UserPage extends Extension
                 NumericScorePermission::CREATE_VOTE => true,
                 PoolsPermission::CREATE => true,
                 PoolsPermission::UPDATE => true,
-                PostSourcePermission::EDIT_IMAGE_SOURCE => true,
-                PostTagsPermission::EDIT_IMAGE_TAG => true,
-                PostTitlesPermission::EDIT_IMAGE_TITLE => true,
+                PostDescriptionPermission::EDIT_OWN_IMAGE_DESCRIPTIONS => true,
+                PostSourcePermission::EDIT_OWN_IMAGE_SOURCE => true,
+                PostTagsPermission::EDIT_OWN_IMAGE_TAG => true,
+                PostTitlesPermission::EDIT_OWN_IMAGE_TITLE => true,
                 PrivateImagePermission::SET_PRIVATE_IMAGE => true,
                 PrivMsgPermission::READ_PM => true,
                 PrivMsgPermission::SEND_PM => true,
                 RatingsPermission::EDIT_IMAGE_RATING => true,
-                RelationshipsPermission::EDIT_IMAGE_RELATIONSHIPS => true,
+                RelationshipsPermission::EDIT_OWN_IMAGE_RELATIONSHIPS => true,
                 ReportImagePermission::CREATE_IMAGE_REPORT => true,
                 TermsPermission::SKIP_TERMS => true,
                 UserAccountsPermission::CHANGE_USER_SETTING => true,
@@ -304,11 +304,14 @@ final class UserPage extends Extension
             $page->set_redirect(make_link("admin"));
             $page->flash("Created new user");
         }
-        if ($event->page_matches("user_admin/list", method: "GET", permission: UserAccountsPermission::EDIT_USER_PASSWORD)) {
+        if ($event->page_matches("user_admin/list", method: "GET")) {
+            if (!UserAccountsPermission::can_view_user_list($user)) {
+                throw new PermissionDenied("You do not have permission to view users");
+            }
             $t = new UserTable($database->raw_db(), $user->class->name === "admin");
             $t->token = $user->get_auth_token();
             $t->inputs = $event->GET->toArray();
-            if ($user->can(UserAccountsPermission::DELETE_USER)) {
+            if ($user->can(UserAccountsPermission::EDIT_USER_INFO)) {
                 $col = new TextColumn("email", "Email");
                 // $t->columns[] = $col;
                 array_splice($t->columns, 2, 0, [$col]);
@@ -325,67 +328,63 @@ final class UserPage extends Extension
         if ($event->page_matches("user_admin/change_name", method: "POST", permission: UserAccountsPermission::EDIT_USER_NAME)) {
             $duser = User::by_id(int_escape($event->POST->req('id')));
             $name = $this->validate_user_name($event->POST->req('name'));
-            if ($this->user_can_edit_user($user, $duser)) {
-                $duser->set_name($name);
-                $page->flash("Username changed");
-                // TODO: set login cookie if user changed themselves
-                $this->redirect_to_user($duser);
-            }
+            $this->assert_can_manage_user($user, $duser, UserAccountsPermission::EDIT_USER_NAME);
+            $duser->set_name($name);
+            $page->flash("Username changed");
+            // TODO: set login cookie if user changed themselves
+            $this->redirect_to_user($duser);
         }
         if ($event->page_matches("user_admin/change_pass", method: "POST")) {
             $duser = User::by_id(int_escape($event->POST->req('id')));
             $pass1 = $event->POST->req('pass1');
             $pass2 = $event->POST->req('pass2');
-            if ($this->user_can_edit_user($user, $duser)) {
-                if ($pass1 !== $pass2) {
-                    throw new InvalidInput("Senhas não coincidem");
-                } else {
-                    $duser->set_password($pass1);
-                    send_event(new UserPasswordChangedEvent($duser, $user));
-                    if ($duser->id === $user->id) {
-                        $duser->set_login_cookie();
-                    }
-                    $page->flash("Password changed");
-                    $this->redirect_to_user($duser);
+            $this->assert_can_manage_user($user, $duser, UserAccountsPermission::EDIT_USER_PASSWORD);
+            if ($pass1 !== $pass2) {
+                throw new InvalidInput("Senhas não coincidem");
+            } else {
+                $duser->set_password($pass1);
+                send_event(new UserPasswordChangedEvent($duser, $user));
+                if ($duser->id === $user->id) {
+                    $duser->set_login_cookie();
                 }
+                $page->flash("Password changed");
+                $this->redirect_to_user($duser);
             }
         }
         if ($event->page_matches("user_admin/change_email", method: "POST")) {
             $duser = User::by_id(int_escape($event->POST->req('id')));
             $address = $event->POST->req('address');
-            if ($this->user_can_edit_user($user, $duser)) {
-                if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
-                    throw new InvalidInput("Endereço de e-mail inválido");
-                }
-                if ($duser->email === $address && $duser->email_verified) {
-                    $page->flash("Este e-mail já está verificado.");
-                } else {
-                    $emailEvent = send_event(new UserEmailChangedEvent($duser, $user, $duser->email, $address));
-                    if ($emailEvent->verificationRateLimited) {
-                        $page->flash("Aguarde 10 minutos antes de reenviar o e-mail de verificação.");
-                    } elseif ($emailEvent->verificationSent) {
-                        $page->flash("Enviamos um e-mail para você verificar a conta. O endereço só será alterado depois da confirmação.");
-                    } else {
-                        $page->flash("Não foi possível enviar o e-mail de verificação. Confira os logs do sistema.");
-                    }
-                }
-                $this->redirect_to_user($duser);
+            $this->assert_can_manage_user($user, $duser, UserAccountsPermission::EDIT_USER_INFO);
+            if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
+                throw new InvalidInput("Endereço de e-mail inválido");
             }
+            if ($duser->email === $address && $duser->email_verified) {
+                $page->flash("Este e-mail já está verificado.");
+            } else {
+                $emailEvent = send_event(new UserEmailChangedEvent($duser, $user, $duser->email, $address));
+                if ($emailEvent->verificationRateLimited) {
+                    $page->flash("Aguarde 10 minutos antes de reenviar o e-mail de verificação.");
+                } elseif ($emailEvent->verificationSent) {
+                    $page->flash("Enviamos um e-mail para você verificar a conta. O endereço só será alterado depois da confirmação.");
+                } else {
+                    $page->flash("Não foi possível enviar o e-mail de verificação. Confira os logs do sistema.");
+                }
+            }
+            $this->redirect_to_user($duser);
         }
-        if ($event->page_matches("user_admin/change_class", method: "POST")) {
+        if ($event->page_matches("user_admin/change_class", method: "POST", permission: UserAccountsPermission::EDIT_USER_CLASS)) {
             $duser = User::by_id(int_escape($event->POST->req('id')));
             $class = $event->POST->req('class');
-
-            // hard-coded that only admins can change people's classes
-            if ($user->class->name === "admin") {
-                $duser->set_class($class);
-                $page->flash("Class changed");
-                $this->redirect_to_user($duser);
-            }
+            $this->assert_can_manage_user($user, $duser, UserAccountsPermission::EDIT_USER_CLASS);
+            $duser->set_class($class);
+            $page->flash("Class changed");
+            $this->redirect_to_user($duser);
         }
         if ($event->page_matches("user_admin/delete_user", method: "POST", permission: UserAccountsPermission::DELETE_USER)) {
+            $duser = User::by_id(int_escape($event->POST->req('id')));
+            $this->assert_can_manage_user($user, $duser, UserAccountsPermission::DELETE_USER);
             $this->delete_user(
-                int_escape($event->POST->req('id')),
+                $duser->id,
                 $event->POST->get("with_images") === "on",
                 $event->POST->get("with_comments") === "on"
             );
@@ -489,7 +488,7 @@ final class UserPage extends Extension
             $this->theme->display_user_links($user, $ubbe->get_parts());
         }
         if (
-            $user->can(IPBanPermission::VIEW_IP) &&
+            $user->can(UserAccountsPermission::VIEW_USER_IPS) &&
             !$is_self &&
             ($event->display_user->id !== Ctx::$config->get(UserAccountsConfig::ANON_ID)) # don't show anon's IP list, it is le huge
         ) {
@@ -505,7 +504,7 @@ final class UserPage extends Extension
     public function onPageSubNavBuilding(PageSubNavBuildingEvent $event): void
     {
         if ($event->parent === "system") {
-            if (Ctx::$user->can(UserAccountsPermission::EDIT_USER_PASSWORD)) {
+            if (UserAccountsPermission::can_view_user_list(Ctx::$user)) {
                 $event->add_nav_link(make_link('user_admin/list'), "User List", ["user_admin"]);
             }
         }
@@ -519,7 +518,7 @@ final class UserPage extends Extension
     public function onUserBlockBuilding(UserBlockBuildingEvent $event): void
     {
         $event->add_link("My Profile", make_link("user"), 0);
-        if (Ctx::$user->can(UserAccountsPermission::EDIT_USER_PASSWORD)) {
+        if (UserAccountsPermission::can_view_user_list(Ctx::$user)) {
             $event->add_link("User List", make_link("user_admin/list"), 87);
         }
         $event->add_link("Log Out", make_link("user_admin/logout"), 99);
@@ -618,7 +617,7 @@ final class UserPage extends Extension
         } elseif ($matches = $event->matches(self::USER_ID_SEARCH_REGEX)) {
             $user_id = int_escape($matches[2]);
             $event->add_querylet(new Querylet("images.owner_id {$matches[1]}= $user_id"));
-        } elseif (Ctx::$user->can(IPBanPermission::VIEW_IP) && $matches = $event->matches("/^(?:poster|user)_ip[=:]([0-9\.]+)$/i")) {
+        } elseif (Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS) && $matches = $event->matches("/^(?:poster|user)_ip[=:]([0-9\.]+)$/i")) {
             $user_ip = $matches[1]; // FIXME: ip_escape?
             $event->add_querylet(new Querylet("images.owner_ip = '$user_ip'"));
         }
@@ -682,16 +681,14 @@ final class UserPage extends Extension
         throw new ServerError("Email sending not implemented");
     }
 
-    private function user_can_edit_user(User $a, User $b): bool
+    private function assert_can_manage_user(User $viewer, User $target, string $permission): void
     {
-        if ($a->is_anonymous()) {
+        if ($viewer->is_anonymous()) {
             throw new PermissionDenied("You aren't logged in");
         }
 
-        if ($this->user_can_view_operations($a, $b)) {
-            return true;
-        } else {
-            throw new PermissionDenied("You need to be an admin to change other people's details");
+        if (!UserAccountsPermission::can_manage_user($viewer, $target, $permission)) {
+            throw new PermissionDenied("You do not have permission to manage this user");
         }
     }
 
@@ -701,10 +698,7 @@ final class UserPage extends Extension
             return false;
         }
 
-        return
-            $viewer->name === $display_user->name ||
-            ($display_user->can(UserAccountsPermission::PROTECTED) && $viewer->class->name === "admin") ||
-            (!$display_user->can(UserAccountsPermission::PROTECTED) && $viewer->can(UserAccountsPermission::EDIT_USER_INFO));
+        return UserAccountsPermission::can_manage_anything_for_user($viewer, $display_user);
     }
 
     private function redirect_to_user(User $duser): void

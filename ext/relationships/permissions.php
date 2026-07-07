@@ -11,6 +11,15 @@ final class RelationshipsPermission extends PermissionGroup
     #[PermissionMeta("Edit post relationships")]
     public const EDIT_IMAGE_RELATIONSHIPS = "edit_image_relationships";
 
+    #[PermissionMeta("Edit own post relationships")]
+    public const EDIT_OWN_IMAGE_RELATIONSHIPS = "edit_own_image_relationships";
+
     #[PermissionMeta("Bulk-edit post relationships")]
     public const BULK_PARENT_CHILD = "bulk_parent_child";
+
+    public static function can_edit_image_relationships(User $user, Post $image): bool
+    {
+        return $user->can(self::EDIT_IMAGE_RELATIONSHIPS) ||
+            ($image->is_owned_by($user) && $user->can(self::EDIT_OWN_IMAGE_RELATIONSHIPS));
+    }
 }

@@ -190,7 +190,7 @@ class CommentListTheme extends Themelet
                 }
                 #if(Ctx::$user->can(UserAbilities::VIEW_IP)) {
                 #$style = " style='color: ".$this->get_anon_colour($comment->poster_ip).";'";
-                if (Ctx::$user->can(IPBanPermission::VIEW_IP) || Ctx::$config->get(CommentConfig::SHOW_REPEAT_ANONS)) {
+                if (Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS) || Ctx::$config->get(CommentConfig::SHOW_REPEAT_ANONS)) {
                     if ($this->anon_map[$comment->owner_ip] !== $this->anon_id) {
                         $anoncode2 = SUP("(" . $this->anon_map[$comment->owner_ip] . ")");
                     }
@@ -228,7 +228,7 @@ class CommentListTheme extends Themelet
                         A(["href" => "javascript:ShmComment.replyTo({$comment->image_id}, {$comment->id}, '{$comment->owner->name}')"], "Reply"),
                     ),
                     emptyHTML(
-                        Ctx::$user->can(IPBanPermission::VIEW_IP) ? emptyHTML(BR(), SHM_IP($comment->owner_ip, "Comment posted {$comment->posted}")) : null,
+                        Ctx::$user->can(UserAccountsPermission::VIEW_USER_IPS) ? emptyHTML(BR(), SHM_IP($comment->owner_ip, "Comment posted {$comment->posted}")) : null,
                         Ctx::$user->can(CommentPermission::DELETE_COMMENT) ? emptyHTML(" - ", $this->delete_link($comment->id, $comment->image_id, $comment->owner->name, $tfe->stripped)) : null,
                         Ctx::$user->can(CommentPermission::EDIT_COMMENT) && Ctx::$user->id === $comment->owner_id ? emptyHTML(" - ", $this->edit_button($comment->id, $comment->image_id, $comment->comment)) : null,
                     ),

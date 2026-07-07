@@ -54,7 +54,7 @@ final class Relationships extends Extension
     #[EventListener]
     public function onPostInfoSet(PostInfoSetEvent $event): void
     {
-        if (Ctx::$user->can(RelationshipsPermission::EDIT_IMAGE_RELATIONSHIPS)) {
+        if (RelationshipsPermission::can_edit_image_relationships(Ctx::$user, $event->image)) {
             if ($event->params['tags'] ? !\Safe\preg_match('/parent[=:]/', $event->params->req("tags")) : true) { //Ignore parent if tags contain parent metatag
                 if ($event->params["parent"] ? int_escape($event->params["parent"]) : false) {
                     send_event(new ImageRelationshipSetEvent($event->image->id, (int) $event->params->req("parent")));
@@ -110,6 +110,10 @@ final class Relationships extends Extension
     {
         if ($matches = $event->matches("/^parent[=:]([0-9]+|none)$/")) {
             $parentID = $matches[1];
+            $image = Post::by_id_ex($event->image_id);
+            if (!RelationshipsPermission::can_edit_image_relationships(Ctx::$user, $image)) {
+                return;
+            }
             if ($parentID === "none" || $parentID === "0") {
                 $this->remove_parent($event->image_id);
             } else {
@@ -117,6 +121,10 @@ final class Relationships extends Extension
             }
         } elseif ($matches = $event->matches("/^child[=:]([0-9]+)$/")) {
             $childID = $matches[1];
+            $child = Post::by_id_ex((int)$childID);
+            if (!RelationshipsPermission::can_edit_image_relationships(Ctx::$user, $child)) {
+                return;
+            }
             send_event(new ImageRelationshipSetEvent((int)$childID, $event->image_id));
         }
     }
@@ -168,6 +176,10 @@ final class Relationships extends Extension
     public function onImageRelationshipSet(ImageRelationshipSetEvent $event): void
     {
         $database = Ctx::$database;
+        $child = Post::by_id($event->child_id);
+        if ($child === null || !RelationshipsPermission::can_edit_image_relationships(Ctx::$user, $child)) {
+            return;
+        }
 
         $old_parent = $database->get_one("SELECT parent_id FROM images WHERE id = :cid", ["cid" => $event->child_id]);
         if (!is_null($old_parent)) {

@@ -59,7 +59,7 @@ class RelationshipsTheme extends Themelet
         return SHM_POST_INFO(
             "Post Pai",
             (string)$image['parent_id'] ?: "None",
-            Ctx::$user->can(RelationshipsPermission::EDIT_IMAGE_RELATIONSHIPS)
+            RelationshipsPermission::can_edit_image_relationships(Ctx::$user, $image)
                 ? INPUT(["type" => "number", "name" => "parent", "value" => $image['parent_id']])
                 : null
         );

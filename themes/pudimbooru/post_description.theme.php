@@ -12,14 +12,14 @@ use function MicroHTML\{TEXTAREA, rawHTML};
 
 class PudimbooruPostDescriptionTheme extends PostDescriptionTheme
 {
-    public function get_description_editor_html(string $raw_description): HTMLElement
+    public function get_description_editor_html(string $raw_description, Post $image): HTMLElement
     {
         $tfe = send_event(new TextFormattingEvent($raw_description));
 
         return SHM_POST_INFO(
             PudimbooruLocale::post_description("Description"),
             rawHTML($tfe->formatted),
-            Ctx::$user->can(PostDescriptionPermission::EDIT_IMAGE_DESCRIPTIONS)
+            PostDescriptionPermission::can_edit_image_descriptions(Ctx::$user, $image)
             ? TEXTAREA([
                 "type" => "text",
                 "name" => "description",
