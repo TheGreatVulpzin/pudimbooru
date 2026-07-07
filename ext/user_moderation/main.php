@@ -34,7 +34,6 @@ final class UserModerationRevokeEvent extends Event
 final class UserModeration extends Extension
 {
     public const KEY = "user_moderation";
-    private const MAX_IP_BANS_PER_ACTION = 5;
 
     #[EventListener(priority: 60)]
     public function onInitExt(InitExtEvent $event): void
@@ -89,6 +88,22 @@ final class UserModeration extends Extension
             $database->execute("CREATE INDEX user_moderation_actions__user_id ON user_moderation_actions(user_id)");
             $database->execute("CREATE INDEX user_moderation_actions__active ON user_moderation_actions(user_id, revoked, expires)");
             $this->set_version(1);
+        }
+        if ($this->get_version() < 2) {
+            $database->create_table("user_moderation_ip_links", "
+                id SCORE_AIPK,
+                action_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                ip SCORE_INET NOT NULL,
+                source VARCHAR(16) NOT NULL,
+                created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (action_id) REFERENCES user_moderation_actions(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE(action_id, ip)
+            ");
+            $database->execute("CREATE INDEX user_moderation_ip_links__ip ON user_moderation_ip_links(ip)");
+            $database->execute("CREATE INDEX user_moderation_ip_links__user_id ON user_moderation_ip_links(user_id)");
+            $this->set_version(2);
         }
     }
 
@@ -189,19 +204,7 @@ final class UserModeration extends Extension
 
         $applied_class = $this->action_to_class($event->action);
         $previous_class = $event->target->class->name;
-        Ctx::$database->execute(
-            "INSERT INTO user_moderation_actions (user_id, moderator_id, action, previous_class, applied_class, reason, expires)
-            VALUES (:user_id, :moderator_id, :action, :previous_class, :applied_class, :reason, :expires)",
-            [
-                "user_id" => $event->target->id,
-                "moderator_id" => $event->moderator->id,
-                "action" => $event->action,
-                "previous_class" => $previous_class,
-                "applied_class" => $applied_class,
-                "reason" => $event->reason,
-                "expires" => $event->expires,
-            ]
-        );
+        $action_id = $this->insert_action($event->target, $event->moderator, $event->action, $previous_class, $applied_class, $event->reason, $event->expires);
         $event->target->set_class($applied_class);
         $event->target->class = UserClass::get_class($applied_class);
         Log::warning(
@@ -210,7 +213,7 @@ final class UserModeration extends Extension
             ($event->expires ?? "forever") . " because: {$event->reason}"
         );
 
-        $this->add_ip_bans_for_account_ban($event);
+        $this->add_ip_bans_for_account_ban($event, $action_id);
     }
 
     #[EventListener]
@@ -220,6 +223,9 @@ final class UserModeration extends Extension
             return;
         }
         if ($this->get_active_action($event->user) !== null) {
+            return;
+        }
+        if (!Ctx::$config->get(UserModerationConfig::AUTO_BAN_EVASION)) {
             return;
         }
 
@@ -233,7 +239,11 @@ final class UserModeration extends Extension
             fn (array $row): string => (string)$row["target_name"],
             $sources
         ));
-        $reason = "Evasão de Ban, conta{$account_list}";
+        $ban_ids = $this->format_ban_id_list(array_map(
+            fn (array $row): int => (int)$row["id"],
+            $sources
+        ));
+        $reason = "Evasão de Ban, conta{$account_list}, ban {$ban_ids}";
         $expires = $this->merge_source_expirations($sources);
         $this->create_system_action($event->user, $moderator, "ban", $reason, $expires);
 
@@ -348,30 +358,30 @@ final class UserModeration extends Extension
         );
     }
 
-    private function add_ip_bans_for_account_ban(UserModerationApplyEvent $event): void
+    private function add_ip_bans_for_account_ban(UserModerationApplyEvent $event, int $action_id): void
     {
         if ($event->action !== "ban" || !class_exists(AddIPBanEvent::class)) {
             return;
         }
 
-        $ips = $this->get_recent_user_ips($event->target);
-        foreach ($ips as $ip) {
+        $ip_evidence = $this->get_recent_user_ips($event->target);
+        foreach ($ip_evidence as $evidence) {
+            $ip = $evidence["ip"];
             if ($ip->is_localhost()) {
                 continue;
             }
+            $this->link_ip_to_action($action_id, $event->target, $ip, $evidence["source"]);
             send_event(new AddIPBanEvent(
                 $ip,
-                "ghost",
-                "Conta banida \"{$event->target->name}\": {$event->reason}",
+                Ctx::$config->get(UserModerationConfig::IP_BAN_MODE),
+                "Conta banida \"{$event->target->name}\", ban #{$action_id}: {$event->reason}",
                 $event->expires
             ));
         }
     }
 
-    private function create_system_action(User $target, User $moderator, string $action, string $reason, ?string $expires): void
+    private function insert_action(User $target, User $moderator, string $action, string $previous_class, string $applied_class, string $reason, ?string $expires): int
     {
-        $applied_class = $this->action_to_class($action);
-        $previous_class = $target->class->name;
         Ctx::$database->execute(
             "INSERT INTO user_moderation_actions (user_id, moderator_id, action, previous_class, applied_class, reason, expires)
             VALUES (:user_id, :moderator_id, :action, :previous_class, :applied_class, :reason, :expires)",
@@ -385,56 +395,62 @@ final class UserModeration extends Extension
                 "expires" => $expires,
             ]
         );
+
+        return Ctx::$database->get_last_insert_id("user_moderation_actions_id_seq");
+    }
+
+    private function create_system_action(User $target, User $moderator, string $action, string $reason, ?string $expires): void
+    {
+        $applied_class = $this->action_to_class($action);
+        $previous_class = $target->class->name;
+        $this->insert_action($target, $moderator, $action, $previous_class, $applied_class, $reason, $expires);
         $target->set_class($applied_class);
         $target->class = UserClass::get_class($applied_class);
     }
 
     /**
-     * @return IPAddress[]
+     * @return array<array{ip: IPAddress, source: string}>
      */
     private function get_recent_user_ips(User $user): array
     {
         $ips = [];
         if (class_exists(LogDatabaseInfo::class) && LogDatabaseInfo::is_enabled()) {
-            $ips = array_merge($ips, Ctx::$database->get_col(
+            $ips = array_merge($ips, $this->ip_rows_to_sources(Ctx::$database->get_col(
                 "SELECT address
                 FROM score_log
                 WHERE LOWER(username) = LOWER(:username)
                 GROUP BY address
-                ORDER BY MAX(date_sent) DESC
-                LIMIT " . self::MAX_IP_BANS_PER_ACTION,
+                ORDER BY MAX(date_sent) DESC",
                 ["username" => $user->name]
-            ));
+            ), "log"));
         }
-        $ips = array_merge($ips, Ctx::$database->get_col(
+        $ips = array_merge($ips, $this->ip_rows_to_sources(Ctx::$database->get_col(
             "SELECT owner_ip
             FROM images
             WHERE owner_id = :user_id
             GROUP BY owner_ip
-            ORDER BY MAX(posted) DESC
-            LIMIT " . self::MAX_IP_BANS_PER_ACTION,
+            ORDER BY MAX(posted) DESC",
             ["user_id" => $user->id]
-        ));
+        ), "post"));
         if (class_exists(CommentListInfo::class) && CommentListInfo::is_enabled()) {
-            $ips = array_merge($ips, Ctx::$database->get_col(
+            $ips = array_merge($ips, $this->ip_rows_to_sources(Ctx::$database->get_col(
                 "SELECT owner_ip
                 FROM comments
                 WHERE owner_id = :user_id
                 GROUP BY owner_ip
-                ORDER BY MAX(posted) DESC
-                LIMIT " . self::MAX_IP_BANS_PER_ACTION,
+                ORDER BY MAX(posted) DESC",
                 ["user_id" => $user->id]
-            ));
+            ), "comment"));
         }
 
         $ret = [];
-        foreach (array_unique(array_map("strval", $ips)) as $ip) {
+        foreach ($ips as $ip => $source) {
             try {
-                $ret[] = IPAddress::parse($ip);
+                $ret[] = ["ip" => IPAddress::parse($ip), "source" => $source];
             } catch (\InvalidArgumentException) {
                 Log::warning("user_moderation", "Ignoring invalid historical IP for {$user->name}: $ip");
             }
-            if (count($ret) >= self::MAX_IP_BANS_PER_ACTION) {
+            if (count($ret) >= $this->get_max_ips_per_ban()) {
                 break;
             }
         }
@@ -446,55 +462,68 @@ final class UserModeration extends Extension
      */
     private function get_active_banned_accounts_for_ip(IPAddress $ip, User $exclude): array
     {
-        $user_ids = [];
-        $ip_string = (string)$ip;
-        if (class_exists(LogDatabaseInfo::class) && LogDatabaseInfo::is_enabled()) {
-            $user_ids = array_merge($user_ids, Ctx::$database->get_col(
-                "SELECT DISTINCT u.id
-                FROM users u
-                JOIN score_log sl ON LOWER(sl.username) = LOWER(u.name)
-                WHERE " . $this->ip_equals_sql("sl.address", "ip"),
-                ["ip" => $ip_string]
-            ));
-        }
-        $user_ids = array_merge($user_ids, Ctx::$database->get_col(
-            "SELECT DISTINCT owner_id FROM images WHERE " . $this->ip_equals_sql("owner_ip", "ip"),
-            ["ip" => $ip_string]
-        ));
-        if (class_exists(CommentListInfo::class) && CommentListInfo::is_enabled()) {
-            $user_ids = array_merge($user_ids, Ctx::$database->get_col(
-                "SELECT DISTINCT owner_id FROM comments WHERE " . $this->ip_equals_sql("owner_ip", "ip"),
-                ["ip" => $ip_string]
-            ));
-        }
-
-        $user_ids = array_values(array_unique(array_filter(
-            array_map(fn ($id): int => (int)$id, $user_ids),
-            fn (int $id): bool => $id !== $exclude->id
-        )));
-        if (count($user_ids) === 0) {
-            return [];
+        if (Ctx::$database->get_driver_id() === DatabaseDriverID::PGSQL) {
+            return Ctx::$database->get_all(
+                "SELECT uma.*, target.name AS target_name
+                FROM user_moderation_actions uma
+                JOIN user_moderation_ip_links umil ON umil.action_id = uma.id
+                JOIN users target ON target.id = uma.user_id
+                WHERE uma.action = :action
+                AND uma.revoked = :revoked
+                AND (uma.expires IS NULL OR uma.expires > CURRENT_TIMESTAMP)
+                AND uma.user_id <> :exclude_id
+                AND umil.ip = CAST(:ip AS inet)
+                ORDER BY uma.created DESC, uma.id DESC",
+                ["action" => "ban", "revoked" => false, "exclude_id" => $exclude->id, "ip" => (string)$ip]
+            );
         }
 
         return Ctx::$database->get_all(
             "SELECT uma.*, target.name AS target_name
             FROM user_moderation_actions uma
+            JOIN user_moderation_ip_links umil ON umil.action_id = uma.id
             JOIN users target ON target.id = uma.user_id
             WHERE uma.action = :action
             AND uma.revoked = :revoked
             AND (uma.expires IS NULL OR uma.expires > CURRENT_TIMESTAMP)
-            AND uma.user_id IN (" . implode(",", $user_ids) . ")
+            AND uma.user_id <> :exclude_id
+            AND umil.ip = :ip
             ORDER BY uma.created DESC, uma.id DESC",
-            ["action" => "ban", "revoked" => false]
+            ["action" => "ban", "revoked" => false, "exclude_id" => $exclude->id, "ip" => (string)$ip]
         );
     }
 
-    private function ip_equals_sql(string $column, string $param): string
+    /**
+     * @param string[] $ips
+     * @return array<string, string>
+     */
+    private function ip_rows_to_sources(array $ips, string $source): array
     {
-        if (Ctx::$database->get_driver_id() === DatabaseDriverID::PGSQL) {
-            return "$column = CAST(:$param AS inet)";
+        $ret = [];
+        foreach ($ips as $ip) {
+            if (!isset($ret[$ip])) {
+                $ret[$ip] = $source;
+            }
         }
-        return "$column = :$param";
+        return $ret;
+    }
+
+    private function link_ip_to_action(int $action_id, User $user, IPAddress $ip, string $source): void
+    {
+        try {
+            Ctx::$database->execute(
+                "INSERT INTO user_moderation_ip_links (action_id, user_id, ip, source)
+                VALUES (:action_id, :user_id, :ip, :source)",
+                ["action_id" => $action_id, "user_id" => $user->id, "ip" => (string)$ip, "source" => $source]
+            );
+        } catch (\PDOException) {
+            Log::info("user_moderation", "Skipped duplicate IP evidence {$ip} for moderation action #{$action_id}");
+        }
+    }
+
+    private function get_max_ips_per_ban(): int
+    {
+        return max(0, Ctx::$config->get(UserModerationConfig::MAX_IPS_PER_BAN));
     }
 
     /**
@@ -543,6 +572,18 @@ final class UserModeration extends Extension
             return " \"{$accounts[0]}\"";
         }
         return "s " . implode(", ", array_map(fn (string $account): string => "\"$account\"", $accounts));
+    }
+
+    /**
+     * @param int[] $ids
+     */
+    private function format_ban_id_list(array $ids): string
+    {
+        $ids = array_values(array_unique($ids));
+        if (count($ids) === 1) {
+            return "#{$ids[0]}";
+        }
+        return implode(", ", array_map(fn (int $id): string => "#$id", $ids));
     }
 
     /**

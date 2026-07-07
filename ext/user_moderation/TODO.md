@@ -1,0 +1,7 @@
+# User Moderation TODO
+
+- [x] Link account bans to IP Ban without overwriting manual IP bans.
+- [x] Store IP evidence for account bans in `user_moderation_ip_links`.
+- [x] Detect ban evasion from stored ban evidence, not loose log history.
+- [x] Add configuration for automatic evasion bans and IP ban behavior.
+- [ ] Add full database-backed tests once local test DB driver is available.

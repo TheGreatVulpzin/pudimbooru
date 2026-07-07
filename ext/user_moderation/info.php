@@ -12,5 +12,5 @@ final class UserModerationInfo extends ExtensionInfo
     public array $authors = self::SHISH_AUTHOR;
     public ExtensionCategory $category = ExtensionCategory::MODERATION;
     public string $description = "Temporarily restrict users by moving them into moderation classes";
-    public array $dependencies = ["user"];
+    public array $dependencies = ["user", "ipban"];
 }
