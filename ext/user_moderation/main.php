@@ -134,7 +134,7 @@ final class UserModeration extends Extension
             if (!Ctx::$user->can(UserModerationPermission::VIEW_USER_MODERATION) && !Ctx::$user->can(UserModerationPermission::MODERATE_USERS)) {
                 throw new PermissionDenied("You do not have permission to view user moderation history");
             }
-            $this->theme->display_moderation_list($this->get_history());
+            $this->theme->display_moderation_list($this->get_active_actions(), $this->get_history());
         }
     }
 
@@ -333,6 +333,22 @@ final class UserModeration extends Extension
             WHERE user_id = :user_id AND revoked = :revoked AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)
             ORDER BY id DESC LIMIT 1",
             ["user_id" => $user->id, "revoked" => false]
+        );
+    }
+
+    /**
+     * @return array<array<string, mixed>>
+     */
+    private function get_active_actions(): array
+    {
+        return Ctx::$database->get_all(
+            "SELECT uma.*, target.name AS target_name, moderator.name AS moderator_name
+            FROM user_moderation_actions uma
+            JOIN users target ON target.id = uma.user_id
+            JOIN users moderator ON moderator.id = uma.moderator_id
+            WHERE uma.revoked = :revoked AND (uma.expires IS NULL OR uma.expires > CURRENT_TIMESTAMP)
+            ORDER BY uma.action ASC, uma.created DESC, uma.id DESC",
+            ["revoked" => false]
         );
     }
 

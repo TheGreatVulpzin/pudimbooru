@@ -25,13 +25,25 @@ class UserModerationTheme extends Themelet
     }
 
     /**
-     * @param array<array<string, mixed>> $rows
+     * @param array<array<string, mixed>> $active
+     * @param array<array<string, mixed>> $history
      */
-    public function display_moderation_list(array $rows): void
+    public function display_moderation_list(array $active, array $history): void
     {
         Ctx::$page->set_title("User Moderation");
         $this->display_navigation();
-        Ctx::$page->add_block(new Block("User Moderation", $this->build_history_table($rows), "main", 10));
+        Ctx::$page->add_block(new Block(
+            "Usuários banidos / silenciados",
+            count($active) > 0 ? $this->build_active_table($active) : P("Nenhum usuário banido ou silenciado no momento."),
+            "main",
+            10
+        ));
+        Ctx::$page->add_block(new Block(
+            "Histórico de moderação",
+            count($history) > 0 ? $this->build_history_table($history) : P("Sem histórico de moderação."),
+            "main",
+            20
+        ));
     }
 
     /**
@@ -92,6 +104,39 @@ class UserModerationTheme extends Themelet
                 " ",
                 INPUT(["type" => "submit", "value" => "Revogar ação ativa"])
             )
+        );
+    }
+
+    /**
+     * @param array<array<string, mixed>> $rows
+     */
+    private function build_active_table(array $rows): HTMLElement
+    {
+        $body = TBODY();
+        foreach ($rows as $row) {
+            $body->appendChild(TR(
+                TD(A(["href" => make_link("user/" . $row["target_name"])], (string)$row["target_name"])),
+                TD($this->format_action((string)$row["action"])),
+                TD((string)$row["moderator_name"]),
+                TD((string)$row["applied_class"]),
+                TD((string)$row["reason"]),
+                TD((string)$row["created"]),
+                TD($row["expires"] === null ? "Nunca" : (string)$row["expires"])
+            ));
+        }
+
+        return TABLE(
+            ["class" => "zebra"],
+            THEAD(TR(
+                TH("Usuário"),
+                TH("Ação"),
+                TH("Moderador"),
+                TH("Cargo atual"),
+                TH("Motivo"),
+                TH("Criada"),
+                TH("Expira")
+            )),
+            $body
         );
     }
 
