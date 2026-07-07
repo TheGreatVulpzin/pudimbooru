@@ -17,6 +17,9 @@ final class UserAccountsPermission extends PermissionGroup
     #[PermissionMeta("Create other users")]
     public const CREATE_OTHER_USER = "create_other_user";
 
+    #[PermissionMeta("View user list")]
+    public const VIEW_USER_LIST = "view_user_list";
+
     #[PermissionMeta("Edit other users' names")]
     public const EDIT_USER_NAME = "edit_user_name";
 
@@ -49,4 +52,61 @@ final class UserAccountsPermission extends PermissionGroup
 
     #[PermissionMeta("Bypass content checks")]
     public const BYPASS_CONTENT_CHECKS = "bypass_content_checks";
+
+    /**
+     * @return list<string>
+     */
+    public static function get_user_management_permissions(): array
+    {
+        return [
+            self::EDIT_USER_NAME,
+            self::EDIT_USER_PASSWORD,
+            self::EDIT_USER_INFO,
+            self::EDIT_USER_CLASS,
+            self::DELETE_USER,
+            self::CHANGE_OTHER_USER_SETTING,
+        ];
+    }
+
+    public static function can_manage_user_accounts(User $viewer): bool
+    {
+        foreach (self::get_user_management_permissions() as $permission) {
+            if ($viewer->can($permission)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function can_view_user_list(User $viewer): bool
+    {
+        return $viewer->can(self::VIEW_USER_LIST) || self::can_manage_user_accounts($viewer);
+    }
+
+    public static function can_manage_user(User $viewer, User $target, string $permission): bool
+    {
+        if ($viewer->is_anonymous()) {
+            return false;
+        }
+        if (
+            $viewer->id === $target->id &&
+            \in_array($permission, [self::EDIT_USER_PASSWORD, self::EDIT_USER_INFO], true)
+        ) {
+            return $viewer->can(self::CHANGE_USER_SETTING) || $viewer->can($permission);
+        }
+        if ($target->can(self::PROTECTED) && $viewer->class->name !== "admin") {
+            return false;
+        }
+        return $viewer->can($permission);
+    }
+
+    public static function can_manage_anything_for_user(User $viewer, User $target): bool
+    {
+        foreach (self::get_user_management_permissions() as $permission) {
+            if (self::can_manage_user($viewer, $target, $permission)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

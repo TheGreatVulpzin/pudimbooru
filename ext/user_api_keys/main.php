@@ -34,6 +34,13 @@ final class UserApiKeys extends Extension
     #[EventListener]
     public function onUserOperationsBuilding(UserOperationsBuildingEvent $event): void
     {
+        if (
+            Ctx::$user->id !== $event->user->id &&
+            !UserAccountsPermission::can_manage_user(Ctx::$user, $event->user, UserAccountsPermission::EDIT_USER_INFO)
+        ) {
+            return;
+        }
+
         $key = $event->user_config->get(UserApiKeysUserConfig::API_KEY);
         if (!$key) {
             $key = generate_key();
