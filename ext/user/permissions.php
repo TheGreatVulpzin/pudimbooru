@@ -80,7 +80,7 @@ final class UserAccountsPermission extends PermissionGroup
 
     public static function can_view_user_list(User $viewer): bool
     {
-        return $viewer->can(self::VIEW_USER_LIST) || self::can_manage_user_accounts($viewer);
+        return $viewer->can(self::VIEW_USER_LIST);
     }
 
     public static function can_manage_user(User $viewer, User $target, string $permission): bool
