@@ -358,6 +358,7 @@ final class UserPage extends Extension
             if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
                 throw new InvalidInput("Endereço de e-mail inválido");
             }
+            User::assert_email_available($address, $duser);
             if ($duser->email === $address && $duser->email_verified) {
                 $page->flash("Este e-mail já está verificado.");
             } else {
@@ -566,6 +567,16 @@ final class UserPage extends Extension
         }
 
         $email = $event->email ?: null;
+        if ($email !== null) {
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new UserCreationException("Invalid email address");
+            }
+            try {
+                User::assert_email_available($email);
+            } catch (InvalidInput $ex) {
+                throw new UserCreationException($ex->getMessage());
+            }
+        }
 
         // if there are currently no admins, the new user should be one
         $need_admin = (Ctx::$database->get_one("SELECT COUNT(*) FROM users WHERE class='admin'") === 0);

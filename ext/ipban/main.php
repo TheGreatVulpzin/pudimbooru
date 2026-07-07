@@ -68,6 +68,20 @@ final class AddIPBanEvent extends Event
     }
 }
 
+final class IPBanHitEvent extends Event
+{
+    /**
+     * @param array<string, mixed> $ban
+     */
+    public function __construct(
+        public User $user,
+        public IPAddress $ip,
+        public array $ban
+    ) {
+        parent::__construct();
+    }
+}
+
 /** @extends Extension<IPBanTheme> */
 final class IPBan extends Extension
 {
@@ -126,6 +140,7 @@ final class IPBan extends Extension
             if (empty($row)) {
                 return;
             }
+            send_event(new IPBanHitEvent($event->user, Network::get_real_ip(), $row));
 
             $row_banner_id_int = intval($row['banner_id']);
 
@@ -227,6 +242,12 @@ final class IPBan extends Extension
     #[EventListener]
     public function onAddIPBan(AddIPBanEvent $event): void
     {
+        $active = $this->get_active_ban_for_ip($event->ip);
+        if ($active !== null) {
+            Log::info("ipban", "Skipped duplicate ban for {$event->ip}; active ban #{$active["id"]} already applies");
+            return;
+        }
+
         Ctx::$database->execute(
             "INSERT INTO bans (ip, mode, reason, expires, banner_id) VALUES (:ip, :mode, :reason, :expires, :admin_id)",
             ["ip" => (string)$event->ip, "mode" => $event->mode, "reason" => $event->reason, "expires" => $event->expires, "admin_id" => Ctx::$user->id]
@@ -365,5 +386,34 @@ final class IPBan extends Extension
             }
         }
         return $active_ban_id;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function get_active_ban_for_ip(IPAddress $ip): ?array
+    {
+        $rows = Ctx::$database->get_pairs("
+            SELECT ip, id
+            FROM bans
+            WHERE ((expires > CURRENT_TIMESTAMP) OR (expires IS NULL))
+        ");
+
+        $ips = [];
+        $networks = [];
+        foreach ($rows as $banned_ip => $id) {
+            if (str_contains($banned_ip, '/')) {
+                $networks[$banned_ip] = $id;
+            } else {
+                $ips[$banned_ip] = $id;
+            }
+        }
+
+        $ban_id = $this->find_active_ban($ip, $ips, $networks);
+        if ($ban_id === null) {
+            return null;
+        }
+
+        return Ctx::$database->get_row("SELECT * FROM bans WHERE id = :id", ["id" => $ban_id]);
     }
 }

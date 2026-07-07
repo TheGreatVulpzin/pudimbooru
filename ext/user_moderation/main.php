@@ -34,6 +34,7 @@ final class UserModerationRevokeEvent extends Event
 final class UserModeration extends Extension
 {
     public const KEY = "user_moderation";
+    private const MAX_IP_BANS_PER_ACTION = 5;
 
     #[EventListener(priority: 60)]
     public function onInitExt(InitExtEvent $event): void
@@ -208,6 +209,38 @@ final class UserModeration extends Extension
             "{$event->moderator->name} applied {$event->action} to {$event->target->name} until " .
             ($event->expires ?? "forever") . " because: {$event->reason}"
         );
+
+        $this->add_ip_bans_for_account_ban($event);
+    }
+
+    #[EventListener]
+    public function onIPBanHit(IPBanHitEvent $event): void
+    {
+        if ($event->user->is_anonymous() || $event->user->class->name === "admin" || $event->user->can(UserAccountsPermission::PROTECTED)) {
+            return;
+        }
+        if ($this->get_active_action($event->user) !== null) {
+            return;
+        }
+
+        $sources = $this->get_active_banned_accounts_for_ip($event->ip, $event->user);
+        if (count($sources) === 0 || !$this->account_was_created_after_a_source_ban($event->user, $sources)) {
+            return;
+        }
+
+        $moderator = User::by_id((int)$sources[0]["moderator_id"]);
+        $account_list = $this->format_account_list(array_map(
+            fn (array $row): string => (string)$row["target_name"],
+            $sources
+        ));
+        $reason = "Evasão de Ban, conta{$account_list}";
+        $expires = $this->merge_source_expirations($sources);
+        $this->create_system_action($event->user, $moderator, "ban", $reason, $expires);
+
+        Log::warning(
+            "user_moderation",
+            "Auto-banned {$event->user->name} for ban evasion from {$event->ip}: {$reason}"
+        );
     }
 
     #[EventListener]
@@ -313,6 +346,203 @@ final class UserModeration extends Extension
             "user_moderation",
             "{$actor} ended {$row["action"]} for {$target->name}: {$reason}"
         );
+    }
+
+    private function add_ip_bans_for_account_ban(UserModerationApplyEvent $event): void
+    {
+        if ($event->action !== "ban" || !class_exists(AddIPBanEvent::class)) {
+            return;
+        }
+
+        $ips = $this->get_recent_user_ips($event->target);
+        foreach ($ips as $ip) {
+            if ($ip->is_localhost()) {
+                continue;
+            }
+            send_event(new AddIPBanEvent(
+                $ip,
+                "ghost",
+                "Conta banida \"{$event->target->name}\": {$event->reason}",
+                $event->expires
+            ));
+        }
+    }
+
+    private function create_system_action(User $target, User $moderator, string $action, string $reason, ?string $expires): void
+    {
+        $applied_class = $this->action_to_class($action);
+        $previous_class = $target->class->name;
+        Ctx::$database->execute(
+            "INSERT INTO user_moderation_actions (user_id, moderator_id, action, previous_class, applied_class, reason, expires)
+            VALUES (:user_id, :moderator_id, :action, :previous_class, :applied_class, :reason, :expires)",
+            [
+                "user_id" => $target->id,
+                "moderator_id" => $moderator->id,
+                "action" => $action,
+                "previous_class" => $previous_class,
+                "applied_class" => $applied_class,
+                "reason" => $reason,
+                "expires" => $expires,
+            ]
+        );
+        $target->set_class($applied_class);
+        $target->class = UserClass::get_class($applied_class);
+    }
+
+    /**
+     * @return IPAddress[]
+     */
+    private function get_recent_user_ips(User $user): array
+    {
+        $ips = [];
+        if (class_exists(LogDatabaseInfo::class) && LogDatabaseInfo::is_enabled()) {
+            $ips = array_merge($ips, Ctx::$database->get_col(
+                "SELECT address
+                FROM score_log
+                WHERE LOWER(username) = LOWER(:username)
+                GROUP BY address
+                ORDER BY MAX(date_sent) DESC
+                LIMIT " . self::MAX_IP_BANS_PER_ACTION,
+                ["username" => $user->name]
+            ));
+        }
+        $ips = array_merge($ips, Ctx::$database->get_col(
+            "SELECT owner_ip
+            FROM images
+            WHERE owner_id = :user_id
+            GROUP BY owner_ip
+            ORDER BY MAX(posted) DESC
+            LIMIT " . self::MAX_IP_BANS_PER_ACTION,
+            ["user_id" => $user->id]
+        ));
+        if (class_exists(CommentListInfo::class) && CommentListInfo::is_enabled()) {
+            $ips = array_merge($ips, Ctx::$database->get_col(
+                "SELECT owner_ip
+                FROM comments
+                WHERE owner_id = :user_id
+                GROUP BY owner_ip
+                ORDER BY MAX(posted) DESC
+                LIMIT " . self::MAX_IP_BANS_PER_ACTION,
+                ["user_id" => $user->id]
+            ));
+        }
+
+        $ret = [];
+        foreach (array_unique(array_map("strval", $ips)) as $ip) {
+            try {
+                $ret[] = IPAddress::parse($ip);
+            } catch (\InvalidArgumentException) {
+                Log::warning("user_moderation", "Ignoring invalid historical IP for {$user->name}: $ip");
+            }
+            if (count($ret) >= self::MAX_IP_BANS_PER_ACTION) {
+                break;
+            }
+        }
+        return $ret;
+    }
+
+    /**
+     * @return array<array<string, mixed>>
+     */
+    private function get_active_banned_accounts_for_ip(IPAddress $ip, User $exclude): array
+    {
+        $user_ids = [];
+        $ip_string = (string)$ip;
+        if (class_exists(LogDatabaseInfo::class) && LogDatabaseInfo::is_enabled()) {
+            $user_ids = array_merge($user_ids, Ctx::$database->get_col(
+                "SELECT DISTINCT u.id
+                FROM users u
+                JOIN score_log sl ON LOWER(sl.username) = LOWER(u.name)
+                WHERE " . $this->ip_equals_sql("sl.address", "ip"),
+                ["ip" => $ip_string]
+            ));
+        }
+        $user_ids = array_merge($user_ids, Ctx::$database->get_col(
+            "SELECT DISTINCT owner_id FROM images WHERE " . $this->ip_equals_sql("owner_ip", "ip"),
+            ["ip" => $ip_string]
+        ));
+        if (class_exists(CommentListInfo::class) && CommentListInfo::is_enabled()) {
+            $user_ids = array_merge($user_ids, Ctx::$database->get_col(
+                "SELECT DISTINCT owner_id FROM comments WHERE " . $this->ip_equals_sql("owner_ip", "ip"),
+                ["ip" => $ip_string]
+            ));
+        }
+
+        $user_ids = array_values(array_unique(array_filter(
+            array_map(fn ($id): int => (int)$id, $user_ids),
+            fn (int $id): bool => $id !== $exclude->id
+        )));
+        if (count($user_ids) === 0) {
+            return [];
+        }
+
+        return Ctx::$database->get_all(
+            "SELECT uma.*, target.name AS target_name
+            FROM user_moderation_actions uma
+            JOIN users target ON target.id = uma.user_id
+            WHERE uma.action = :action
+            AND uma.revoked = :revoked
+            AND (uma.expires IS NULL OR uma.expires > CURRENT_TIMESTAMP)
+            AND uma.user_id IN (" . implode(",", $user_ids) . ")
+            ORDER BY uma.created DESC, uma.id DESC",
+            ["action" => "ban", "revoked" => false]
+        );
+    }
+
+    private function ip_equals_sql(string $column, string $param): string
+    {
+        if (Ctx::$database->get_driver_id() === DatabaseDriverID::PGSQL) {
+            return "$column = CAST(:$param AS inet)";
+        }
+        return "$column = :$param";
+    }
+
+    /**
+     * @param array<array<string, mixed>> $sources
+     */
+    private function account_was_created_after_a_source_ban(User $user, array $sources): bool
+    {
+        $joined = strtotime($user->join_date);
+        if ($joined === false) {
+            return false;
+        }
+        foreach ($sources as $source) {
+            $created = strtotime((string)$source["created"]);
+            if ($created !== false && $joined >= $created) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param array<array<string, mixed>> $sources
+     */
+    private function merge_source_expirations(array $sources): ?string
+    {
+        $latest = null;
+        foreach ($sources as $source) {
+            if ($source["expires"] === null) {
+                return null;
+            }
+            $expires = (string)$source["expires"];
+            if ($latest === null || strtotime($expires) > strtotime($latest)) {
+                $latest = $expires;
+            }
+        }
+        return $latest;
+    }
+
+    /**
+     * @param string[] $accounts
+     */
+    private function format_account_list(array $accounts): string
+    {
+        $accounts = array_values(array_unique($accounts));
+        if (count($accounts) === 1) {
+            return " \"{$accounts[0]}\"";
+        }
+        return "s " . implode(", ", array_map(fn (string $account): string => "\"$account\"", $accounts));
     }
 
     /**

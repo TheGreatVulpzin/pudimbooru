@@ -75,4 +75,19 @@ final class UserPageTest extends ShimmiePHPUnitTestCase
         self::assertSame(302, $page->code);
         User::by_name('testnew');
     }
+
+    public function testCreateUserRejectsDuplicateEmail(): void
+    {
+        self::log_in_as_admin();
+
+        self::assertException(UserCreationException::class, function () {
+            send_event(new UserCreationEvent(
+                "dupeemail",
+                "dupeemail",
+                "dupeemail",
+                "demo@demo.com",
+                false
+            ));
+        });
+    }
 }
