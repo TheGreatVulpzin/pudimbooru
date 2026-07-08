@@ -59,7 +59,9 @@ class UserModerationTheme extends Themelet
                 " até ",
                 $active["expires"] === null ? "sem expiração" : (string)$active["expires"],
                 ". Motivo: ",
-                (string)$active["reason"]
+                (string)$active["reason"],
+                " IPs: ",
+                $this->format_ip_evidence($active["ip_evidence"] ?? [])
             ) : P("Nenhuma ação ativa."),
             $can_moderate ? $this->build_create_form($target) : null,
             $can_moderate && $active !== null ? $this->build_revoke_form((int)$active["id"]) : null,
@@ -120,6 +122,7 @@ class UserModerationTheme extends Themelet
                 TD((string)$row["moderator_name"]),
                 TD((string)$row["applied_class"]),
                 TD((string)$row["reason"]),
+                TD($this->format_ip_evidence($row["ip_evidence"] ?? [])),
                 TD((string)$row["created"]),
                 TD($row["expires"] === null ? "Nunca" : (string)$row["expires"])
             ));
@@ -133,6 +136,7 @@ class UserModerationTheme extends Themelet
                 TH("Moderador"),
                 TH("Cargo atual"),
                 TH("Motivo"),
+                TH("IPs"),
                 TH("Criada"),
                 TH("Expira")
             )),
@@ -153,6 +157,7 @@ class UserModerationTheme extends Themelet
                 TD((string)$row["moderator_name"]),
                 TD((string)$row["previous_class"], " -> ", (string)$row["applied_class"]),
                 TD((string)$row["reason"]),
+                TD($this->format_ip_evidence($row["ip_evidence"] ?? [])),
                 TD((string)$row["created"]),
                 TD($row["expires"] === null ? "Nunca" : (string)$row["expires"]),
                 TD((bool)$row["revoked"] ? "Encerrada" : "Ativa")
@@ -167,6 +172,7 @@ class UserModerationTheme extends Themelet
                 TH("Moderador"),
                 TH("Cargo"),
                 TH("Motivo"),
+                TH("IPs"),
                 TH("Criada"),
                 TH("Expira"),
                 TH("Status")
@@ -182,5 +188,22 @@ class UserModerationTheme extends Themelet
             "silence" => "Silêncio",
             default => $action,
         };
+    }
+
+    /**
+     * @param array<array{ip: string, source: string}> $evidence
+     */
+    private function format_ip_evidence(array $evidence): HTMLElement|string
+    {
+        if (count($evidence) === 0) {
+            return "-";
+        }
+
+        $items = [];
+        foreach ($evidence as $row) {
+            $items[] = "{$row["ip"]} ({$row["source"]})";
+        }
+
+        return SMALL(implode(", ", $items));
     }
 }

@@ -9,8 +9,12 @@ final class UserModerationConfig extends ConfigGroup
     public const KEY = "user_moderation";
     public ?string $title = "User Moderation";
 
-    #[ConfigMeta("Auto-ban ban evasion", ConfigType::BOOL, default: true)]
-    public const AUTO_BAN_EVASION = "user_moderation_auto_ban_evasion";
+    #[ConfigMeta("Ban evasion mode", ConfigType::STRING, default: "auto", options: [
+        "Auto-ban" => "auto",
+        "Detect only" => "detect",
+        "Off" => "off",
+    ])]
+    public const BAN_EVASION_MODE = "user_moderation_ban_evasion_mode";
 
     #[ConfigMeta("IP ban mode for account bans", ConfigType::STRING, default: "ghost", options: [
         "Ghost" => "ghost",

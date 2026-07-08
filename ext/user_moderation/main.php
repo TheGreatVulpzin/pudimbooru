@@ -105,6 +105,11 @@ final class UserModeration extends Extension
             $database->execute("CREATE INDEX user_moderation_ip_links__user_id ON user_moderation_ip_links(user_id)");
             $this->set_version(2);
         }
+        if ($this->get_version() < 3) {
+            $database->execute("ALTER TABLE user_moderation_ip_links ADD COLUMN ip_ban_id INTEGER NULL");
+            $database->execute("ALTER TABLE user_moderation_ip_links ADD COLUMN ip_ban_created BOOLEAN NOT NULL DEFAULT FALSE");
+            $this->set_version(3);
+        }
     }
 
     #[EventListener(priority: 20)]
@@ -225,7 +230,8 @@ final class UserModeration extends Extension
         if ($this->get_active_action($event->user) !== null) {
             return;
         }
-        if (!Ctx::$config->get(UserModerationConfig::AUTO_BAN_EVASION)) {
+        $evasion_mode = Ctx::$config->get(UserModerationConfig::BAN_EVASION_MODE);
+        if ($evasion_mode === "off") {
             return;
         }
 
@@ -245,11 +251,13 @@ final class UserModeration extends Extension
         ));
         $reason = "Evasão de Ban, conta{$account_list}, ban {$ban_ids}";
         $expires = $this->merge_source_expirations($sources);
-        $this->create_system_action($event->user, $moderator, "ban", $reason, $expires);
+        if ($evasion_mode === "auto") {
+            $this->create_system_action($event->user, $moderator, "ban", $reason, $expires);
+        }
 
         Log::warning(
             "user_moderation",
-            "Auto-banned {$event->user->name} for ban evasion from {$event->ip}: {$reason}"
+            ($evasion_mode === "auto" ? "Auto-banned" : "Detected") . " {$event->user->name} for ban evasion from {$event->ip}: {$reason}"
         );
     }
 
@@ -356,6 +364,7 @@ final class UserModeration extends Extension
             "user_moderation",
             "{$actor} ended {$row["action"]} for {$target->name}: {$reason}"
         );
+        $this->remove_linked_ip_bans((int)$row["id"]);
     }
 
     private function add_ip_bans_for_account_ban(UserModerationApplyEvent $event, int $action_id): void
@@ -370,13 +379,14 @@ final class UserModeration extends Extension
             if ($ip->is_localhost()) {
                 continue;
             }
-            $this->link_ip_to_action($action_id, $event->target, $ip, $evidence["source"]);
-            send_event(new AddIPBanEvent(
+            $ip_ban_event = new AddIPBanEvent(
                 $ip,
                 Ctx::$config->get(UserModerationConfig::IP_BAN_MODE),
                 "Conta banida \"{$event->target->name}\", ban #{$action_id}: {$event->reason}",
                 $event->expires
-            ));
+            );
+            send_event($ip_ban_event);
+            $this->link_ip_to_action($action_id, $event->target, $ip, $evidence["source"], $ip_ban_event->ban_id, $ip_ban_event->created);
         }
     }
 
@@ -508,16 +518,38 @@ final class UserModeration extends Extension
         return $ret;
     }
 
-    private function link_ip_to_action(int $action_id, User $user, IPAddress $ip, string $source): void
+    private function link_ip_to_action(int $action_id, User $user, IPAddress $ip, string $source, ?int $ip_ban_id, bool $ip_ban_created): void
     {
         try {
             Ctx::$database->execute(
-                "INSERT INTO user_moderation_ip_links (action_id, user_id, ip, source)
-                VALUES (:action_id, :user_id, :ip, :source)",
-                ["action_id" => $action_id, "user_id" => $user->id, "ip" => (string)$ip, "source" => $source]
+                "INSERT INTO user_moderation_ip_links (action_id, user_id, ip, source, ip_ban_id, ip_ban_created)
+                VALUES (:action_id, :user_id, :ip, :source, :ip_ban_id, :ip_ban_created)",
+                [
+                    "action_id" => $action_id,
+                    "user_id" => $user->id,
+                    "ip" => (string)$ip,
+                    "source" => $source,
+                    "ip_ban_id" => $ip_ban_id,
+                    "ip_ban_created" => $ip_ban_created,
+                ]
             );
         } catch (\PDOException) {
             Log::info("user_moderation", "Skipped duplicate IP evidence {$ip} for moderation action #{$action_id}");
+        }
+    }
+
+    private function remove_linked_ip_bans(int $action_id): void
+    {
+        $ids = Ctx::$database->get_col(
+            "SELECT ip_ban_id
+            FROM user_moderation_ip_links
+            WHERE action_id = :action_id
+            AND ip_ban_created = :ip_ban_created
+            AND ip_ban_id IS NOT NULL",
+            ["action_id" => $action_id, "ip_ban_created" => true]
+        );
+        foreach ($ids as $id) {
+            send_event(new RemoveIPBanEvent((int)$id));
         }
     }
 
@@ -599,12 +631,16 @@ final class UserModeration extends Extension
      */
     private function get_active_action(User $user): ?array
     {
-        return Ctx::$database->get_row(
+        $row = Ctx::$database->get_row(
             "SELECT * FROM user_moderation_actions
             WHERE user_id = :user_id AND revoked = :revoked AND (expires IS NULL OR expires > CURRENT_TIMESTAMP)
             ORDER BY id DESC LIMIT 1",
             ["user_id" => $user->id, "revoked" => false]
         );
+        if ($row !== null) {
+            $row["ip_evidence"] = $this->get_ip_evidence((int)$row["id"]);
+        }
+        return $row;
     }
 
     /**
@@ -612,7 +648,7 @@ final class UserModeration extends Extension
      */
     private function get_active_actions(): array
     {
-        return Ctx::$database->get_all(
+        return $this->with_ip_evidence(Ctx::$database->get_all(
             "SELECT uma.*, target.name AS target_name, moderator.name AS moderator_name
             FROM user_moderation_actions uma
             JOIN users target ON target.id = uma.user_id
@@ -620,7 +656,7 @@ final class UserModeration extends Extension
             WHERE uma.revoked = :revoked AND (uma.expires IS NULL OR uma.expires > CURRENT_TIMESTAMP)
             ORDER BY uma.action ASC, uma.created DESC, uma.id DESC",
             ["revoked" => false]
-        );
+        ));
     }
 
     /**
@@ -634,7 +670,7 @@ final class UserModeration extends Extension
             $where = "WHERE uma.user_id = :user_id";
             $args["user_id"] = $user->id;
         }
-        return Ctx::$database->get_all(
+        return $this->with_ip_evidence(Ctx::$database->get_all(
             "SELECT uma.*, target.name AS target_name, moderator.name AS moderator_name
             FROM user_moderation_actions uma
             JOIN users target ON target.id = uma.user_id
@@ -643,6 +679,37 @@ final class UserModeration extends Extension
             ORDER BY uma.revoked ASC, uma.created DESC, uma.id DESC
             LIMIT 100",
             $args
+        ));
+    }
+
+    /**
+     * @param array<array<string, mixed>> $rows
+     * @return array<array<string, mixed>>
+     */
+    private function with_ip_evidence(array $rows): array
+    {
+        foreach ($rows as $i => $row) {
+            $rows[$i]["ip_evidence"] = $this->get_ip_evidence((int)$row["id"]);
+        }
+        return $rows;
+    }
+
+    /**
+     * @return array<array{ip: string, source: string}>
+     */
+    private function get_ip_evidence(int $action_id): array
+    {
+        $rows = Ctx::$database->get_all(
+            "SELECT ip, source
+            FROM user_moderation_ip_links
+            WHERE action_id = :action_id
+            ORDER BY created ASC, id ASC",
+            ["action_id" => $action_id]
         );
+        $ret = [];
+        foreach ($rows as $row) {
+            $ret[] = ["ip" => (string)$row["ip"], "source" => (string)$row["source"]];
+        }
+        return $ret;
     }
 }
