@@ -59,4 +59,31 @@ final class IPBanTest extends ShimmiePHPUnitTestCase
         $page = self::get_page('ip_ban/list', ['r_all' => 'on']);
         self::assertSame(200, $page->code);
     }
+
+    public function testDuplicateActiveBanIsSkipped(): void
+    {
+        self::log_in_as_admin();
+
+        send_event(new AddIPBanEvent(
+            IPAddress::parse('42.42.42.43'),
+            'ghost',
+            'first ban',
+            '2030-01-01'
+        ));
+        send_event(new AddIPBanEvent(
+            IPAddress::parse('42.42.42.43'),
+            'block',
+            'second ban',
+            '2031-01-01'
+        ));
+
+        self::assertSame(
+            1,
+            (int)Ctx::$database->get_one("SELECT COUNT(*) FROM bans WHERE ip = :ip", ["ip" => "42.42.42.43"])
+        );
+        self::assertSame(
+            "first ban",
+            Ctx::$database->get_one("SELECT reason FROM bans WHERE ip = :ip", ["ip" => "42.42.42.43"])
+        );
+    }
 }

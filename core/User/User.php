@@ -151,6 +151,24 @@ final class User
         return User::by_name($name)->id;
     }
 
+    public static function assert_email_available(string $address, ?User $current_user = null): void
+    {
+        if ($current_user === null) {
+            $row = Ctx::$database->get_row(
+                "SELECT id, name FROM users WHERE LOWER(email) = LOWER(:email) LIMIT 1",
+                ["email" => $address]
+            );
+        } else {
+            $row = Ctx::$database->get_row(
+                "SELECT id, name FROM users WHERE LOWER(email) = LOWER(:email) AND id <> :user_id LIMIT 1",
+                ["email" => $address, "user_id" => $current_user->id]
+            );
+        }
+        if ($row !== null) {
+            throw new InvalidInput("Email address is already in use");
+        }
+    }
+
     public static function by_name_and_pass(string $name, string $pass): User
     {
         try {
@@ -233,6 +251,7 @@ final class User
         if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidInput("Invalid email address");
         }
+        self::assert_email_available($address, $this);
         Ctx::$database->execute("UPDATE users SET email=:email WHERE id=:id", ["email" => $address, "id" => $this->id]);
         Log::info("core-user", 'Set email for '.$this->name);
     }
