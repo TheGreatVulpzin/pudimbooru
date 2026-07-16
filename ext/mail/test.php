@@ -64,4 +64,23 @@ final class MailTest extends ShimmiePHPUnitTestCase
         self::assertSame("Accounts", $email->getFrom()[0]->getName());
         self::assertSame("helpdesk@example.com", $email->getReplyTo()[0]->getAddress());
     }
+
+    public function testDisabledDeliverySkipsSend(): void
+    {
+        Ctx::$config->set(MailConfig::ENABLED, false);
+
+        try {
+            $event = new MailSendEvent(
+                "user@example.com",
+                "Subject",
+                "Text body",
+            );
+            (new Mail())->onMailSend($event);
+
+            self::assertFalse($event->sent);
+            self::assertSame(Mail::DELIVERY_DISABLED_MESSAGE, $event->error);
+        } finally {
+            Ctx::$config->set(MailConfig::ENABLED, true);
+        }
+    }
 }

@@ -11,6 +11,7 @@ use Symfony\Component\Mime\{Address, Email};
 final class Mail extends Extension
 {
     public const KEY = "mail";
+    public const DELIVERY_DISABLED_MESSAGE = "Email delivery is temporarily disabled.";
 
     #[EventListener]
     public function onPageRequest(PageRequestEvent $event): void
@@ -115,6 +116,12 @@ final class Mail extends Extension
     #[EventListener]
     public function onMailSend(MailSendEvent $event): void
     {
+        if (!self::isDeliveryEnabled()) {
+            $event->error = self::DELIVERY_DISABLED_MESSAGE;
+            Log::warning("mail", "Email delivery is disabled; skipped email to {$event->to}");
+            return;
+        }
+
         try {
             $mailer = new SymfonyMailer(Transport::fromDsn(self::buildDsn()));
             $mailer->send(self::buildEmail($event));
@@ -124,6 +131,11 @@ final class Mail extends Extension
             $event->error = $ex->getMessage();
             Log::error("mail", "Failed to send email to {$event->to}: {$ex->getMessage()}");
         }
+    }
+
+    public static function isDeliveryEnabled(): bool
+    {
+        return Ctx::$config->get(MailConfig::ENABLED);
     }
 
     public static function buildDsn(): string

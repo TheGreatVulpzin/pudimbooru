@@ -66,4 +66,16 @@ class PudimbooruPasswordResetTheme extends PasswordResetTheme
             50
         ));
     }
+
+    public function display_unavailable_page(): void
+    {
+        Ctx::$page->set_title(PudimbooruLocale::translate("Reset Password"));
+        Ctx::$page->set_layout("no-left");
+        Ctx::$page->add_block(new Block(
+            PudimbooruLocale::translate("Reset Password"),
+            P(PudimbooruLocale::translate("Password reset email is temporarily unavailable. Please try again later.")),
+            "main",
+            50
+        ));
+    }
 }

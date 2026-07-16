@@ -9,6 +9,9 @@ final class MailConfig extends ConfigGroup
     public const KEY = "mail";
     public ?string $title = "Mail";
 
+    #[ConfigMeta("Enable email delivery", ConfigType::BOOL, default: true, help: "Turn this off to temporarily pause all outgoing email while keeping mail settings saved.", permission: MailPermission::MANAGE_MAIL_SETTINGS)]
+    public const ENABLED = "mail_enabled";
+
     #[ConfigMeta("SMTP host", ConfigType::STRING, permission: MailPermission::MANAGE_MAIL_SETTINGS)]
     public const SMTP_HOST = "mail_smtp_host";
 

@@ -41,8 +41,11 @@ final class PasswordReset extends Extension
         }
 
         if ($event->page_matches("password_reset/request", method: "POST", permission: PasswordResetPermission::REQUEST_PASSWORD_RESET)) {
-            $this->requestReset($event->POST->req("login"));
-            $this->theme->display_sent_page();
+            if ($this->requestReset($event->POST->req("login"))) {
+                $this->theme->display_sent_page();
+            } else {
+                $this->theme->display_unavailable_page();
+            }
         }
 
         if ($event->page_matches("password_reset/reset", method: "GET", permission: PasswordResetPermission::REQUEST_PASSWORD_RESET)) {
@@ -65,8 +68,11 @@ final class PasswordReset extends Extension
     #[EventListener]
     public function onPasswordResetRequest(PasswordResetRequestEvent $event): void
     {
-        $this->requestReset($event->login);
-        Ctx::$page->flash(self::GENERIC_MESSAGE);
+        if ($this->requestReset($event->login)) {
+            Ctx::$page->flash(self::GENERIC_MESSAGE);
+        } else {
+            Ctx::$page->flash("Password reset email is temporarily unavailable. Please try again later.");
+        }
         Ctx::$page->set_redirect(make_link("user_admin/login"));
     }
 
@@ -78,19 +84,24 @@ final class PasswordReset extends Extension
         }
     }
 
-    public function requestReset(string $login): void
+    public function requestReset(string $login): bool
     {
+        if (!Mail::isDeliveryEnabled()) {
+            Log::warning("password_reset", "Password reset requested while email delivery is disabled");
+            return false;
+        }
+
         $this->deleteExpiredTokens();
         $user = $this->findUser($login);
         if ($user === null || $user->email === null || $user->email === "" || !$user->email_verified) {
             Log::info("password_reset", "Password reset requested for unknown, email-less, or unverified account");
-            return;
+            return true;
         }
 
         $requestIp = (string)Network::get_real_ip();
         if ($this->isRateLimited($user, $requestIp)) {
             Log::warning("password_reset", "Password reset rate limited for user #{$user->id} from $requestIp");
-            return;
+            return true;
         }
 
         $token = bin2hex(random_bytes(32));
@@ -119,6 +130,7 @@ final class PasswordReset extends Extension
         } else {
             Log::info("password_reset", "Password reset email sent for user #{$user->id}");
         }
+        return true;
     }
 
     public function resetPassword(string $token, string $pass1, string $pass2): void

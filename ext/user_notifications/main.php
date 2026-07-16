@@ -168,6 +168,11 @@ final class UserNotifications extends Extension
             return false;
         }
 
+        if (!Mail::isDeliveryEnabled()) {
+            Log::warning("user_notifications", "Email verification skipped for user #{$user->id} because email delivery is disabled");
+            return false;
+        }
+
         $this->deleteExpiredTokens();
         Ctx::$database->execute(
             "UPDATE user_email_verification_tokens SET used = :used WHERE user_id = :user_id AND email = :email AND used = :unused",
