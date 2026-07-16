@@ -61,4 +61,15 @@ class PasswordResetTheme extends Themelet
             50
         ));
     }
+
+    public function display_unavailable_page(): void
+    {
+        Ctx::$page->set_title("Reset Password");
+        Ctx::$page->add_block(new Block(
+            "Reset Password",
+            P("Password reset email is temporarily unavailable. Please try again later."),
+            "main",
+            50
+        ));
+    }
 }
