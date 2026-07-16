@@ -36,7 +36,7 @@ Todo o código-fonte original do Shimmie2 permanece sob a licença GPLv2, e as m
 Este projeto é distribuído sob os termos da **GNU General Public License versão 2** (GPLv2), assim como o Shimmie2 original.  
 Você pode encontrar uma cópia completa da licença no arquivo [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html) ou no site da Free Software Foundation.
 
-**Resumo dos Termos:**  
+**Basicamente:**  
 - Você pode usar, modificar e distribuir este software livremente, desde que mantenha os créditos e compartilhe as alterações sob a mesma licença.
 - Se você distribuir o Pudimbooru (ou um site baseado nele) para terceiros, deverá fornecer o código-fonte correspondente (o que é natural, já que se trata de código PHP interpretado).
-- Modificações feitas exclusivamente para o seu próprio site não precisam ser redistribuídas – elas pertencem a você.
+- Modificações feitas exclusivamente para o seu próprio site não precisam ser redistribuídas, elas pertencem a você.
