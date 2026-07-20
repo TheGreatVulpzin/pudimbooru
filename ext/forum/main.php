@@ -378,6 +378,14 @@ final class Forum extends Extension
 
         $threads = ForumThread::get_all_threads($page_number, $threads_per_page);
         $totalPages = (int)ceil(ForumThread::get_thread_count() / $threads_per_page);
+        if (SocialMetaInfo::is_enabled()) {
+            send_event(new SocialMetaDataEvent(new SocialMetaPageData(
+                kind: "forum",
+                title: "Fórum",
+                canonical: make_link("forum/index"),
+                description: "Acompanhe as discussões da comunidade.",
+            )));
+        }
         $this->theme->display_thread_list($threads, $showAdminOptions, $page_number + 1, $totalPages);
     }
 
@@ -387,6 +395,23 @@ final class Forum extends Extension
         $thread = ForumThread::by_id($thread_id);
         $posts = ForumPost::get_all_posts($thread_id, $page_number, $posts_per_page);
         $totalPages = (int)ceil($thread->response_count / $posts_per_page);
+
+        if (SocialMetaInfo::is_enabled()) {
+            $description = "";
+            foreach ($posts as $post) {
+                if (trim($post->message) !== "") {
+                    $description = $post->message;
+                    break;
+                }
+            }
+            send_event(new SocialMetaDataEvent(new SocialMetaPageData(
+                kind: "forum",
+                title: "Fórum: {$thread->title}",
+                canonical: make_link("forum/view/{$thread->id}"),
+                description: $description,
+                published_at: $thread->date,
+            )));
+        }
 
         $this->theme->display_thread($thread, $posts, $showAdminOptions, $thread_id, $page_number + 1, $totalPages);
     }

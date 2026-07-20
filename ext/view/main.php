@@ -79,7 +79,9 @@ final class ViewPost extends Extension
     #[EventListener]
     public function onDisplayingPost(DisplayingPostEvent $event): void
     {
-        $this->theme->display_meta_headers($event->image);
+        if (!SocialMetaInfo::is_enabled()) {
+            $this->theme->display_meta_headers($event->image);
+        }
 
         $iibbe = send_event(new PostInfoBoxBuildingEvent($event->image, Ctx::$user));
         $this->theme->display_page($event->image, $iibbe->get_parts(), $iibbe->get_sidebar_parts());

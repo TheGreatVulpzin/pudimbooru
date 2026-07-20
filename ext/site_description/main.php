@@ -14,7 +14,7 @@ final class SiteDescription extends Extension
     public function onPageRequest(PageRequestEvent $event): void
     {
         $description = Ctx::$config->get(SiteDescriptionConfig::DESCRIPTION);
-        if (!empty($description)) {
+        if (!SocialMetaInfo::is_enabled() && !empty($description)) {
             Ctx::$page->add_html_header(META([
                 'name' => 'description',
                 'content' => $description

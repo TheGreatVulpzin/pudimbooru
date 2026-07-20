@@ -9,7 +9,7 @@ final class IndexTest extends ShimmiePHPUnitTestCase
     public function testIndexPage(): void
     {
         self::get_page('post/list');
-        self::assert_title("Welcome to Shimmie");
+        self::assert_title("Shimmie");
         self::assert_no_text("Prev | Index | Next");
 
         self::log_in_as_user();

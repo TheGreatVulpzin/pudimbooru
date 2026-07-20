@@ -12,7 +12,7 @@ final class UserPageTest extends ShimmiePHPUnitTestCase
         self::assertSame(PageMode::REDIRECT, $page->mode);
 
         self::get_page('user/demo');
-        self::assert_title("demo's Page");
+        self::assert_title("Perfil: demo | Shimmie");
         self::assert_text("Entrou:");
         self::assert_no_text("Operations");
 
@@ -23,7 +23,7 @@ final class UserPageTest extends ShimmiePHPUnitTestCase
         self::log_in_as_user();
         // should be on the user page
         self::get_page('user/test');
-        self::assert_title("test's Page");
+        self::assert_title("Perfil: test | Shimmie");
         self::assert_no_text("Operations");
         self::assert_text("User Options");
         // FIXME: check class
@@ -33,7 +33,7 @@ final class UserPageTest extends ShimmiePHPUnitTestCase
         self::log_in_as_admin();
         // should be on the user page
         self::get_page('user/test');
-        self::assert_title("test's Page");
+        self::assert_title("Perfil: test | Shimmie");
         self::assert_text("Operations");
         // FIXME: check class
         //self::assert_text("Admin:");

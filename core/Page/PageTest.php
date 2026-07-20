@@ -9,6 +9,8 @@ final class PageTest extends ShimmiePHPUnitTestCase
     public function test_page(): void
     {
         $page = new Page();
+        Ctx::$config->set(SetupConfig::HTML_LANGUAGE, "pt-BR");
+        self::assertStringContainsString("<html lang='pt-BR'>", (string)$page->render());
         ob_start();
         $page->display();
         self::assertGreaterThan(0, ob_get_length());

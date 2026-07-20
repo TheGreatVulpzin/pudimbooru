@@ -58,7 +58,7 @@ final class UploadTest extends ShimmiePHPUnitTestCase
         self::assertGreaterThan(0, $image_id);
 
         self::get_page("post/view/$image_id");
-        self::assert_title("Post $image_id: computer pbx screenshot");
+        self::assert_title("Post #$image_id | Shimmie");
     }
 
     public function testRejectDupe(): void

@@ -291,7 +291,7 @@ trait Page_Page
         return emptyHTML(
             \MicroHTML\rawHTML("<!doctype html>"),
             HTML(
-                ["lang" => "en"],
+                ["lang" => Ctx::$config->get(SetupConfig::HTML_LANGUAGE)],
                 $head,
                 $body,
             )

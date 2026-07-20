@@ -206,6 +206,20 @@ final class Wiki extends Extension
             } else {
                 $revision = int_escape($event->GET->get('revision') ?? "-1");
                 $content = self::get_page($title, $revision);
+                if ($content->exists()) {
+                    $translation_key = ucfirst($content->title);
+                    $translated_title = PudimbooruLocale::translate($translation_key);
+                    $social_title = $translated_title === $translation_key
+                        ? $content->title
+                        : $translated_title;
+                    send_event(new SocialMetaDataEvent(new SocialMetaPageData(
+                        kind: "wiki",
+                        title: "Wiki: {$social_title}",
+                        canonical: make_link("wiki/" . url_escape($content->title)),
+                        description: $content->body,
+                        published_at: $content->date,
+                    )));
+                }
                 $this->theme->display_page($content, self::get_page("wiki:sidebar"));
             }
         } elseif ($event->page_matches("wiki")) {
