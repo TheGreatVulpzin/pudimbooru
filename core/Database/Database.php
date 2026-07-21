@@ -422,7 +422,13 @@ class Database
                 $args
             ),
             DatabaseDriverID::PGSQL => $this->exists(
-                "SELECT 1 FROM pg_indexes WHERE schemaname = ANY(current_schemas(FALSE)) AND tablename = :table AND indexname = :index",
+                "SELECT 1
+                 FROM pg_catalog.pg_index AS index_data
+                 JOIN pg_catalog.pg_class AS index_relation ON index_relation.oid = index_data.indexrelid
+                 JOIN pg_catalog.pg_class AS table_relation ON table_relation.oid = index_data.indrelid
+                 WHERE table_relation.relname = :table
+                   AND index_relation.relname = :index
+                   AND pg_catalog.pg_table_is_visible(table_relation.oid)",
                 $args
             ),
             DatabaseDriverID::SQLITE => $this->exists(
