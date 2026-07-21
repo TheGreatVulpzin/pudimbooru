@@ -22,6 +22,15 @@ final class PasswordResetTest extends ShimmiePHPUnitTestCase
         self::assertSame(0, Ctx::$database->get_one("SELECT COUNT(*) FROM password_reset_tokens"));
     }
 
+    public function testDatabaseUpgradeIsIdempotentWhenVersionIsStale(): void
+    {
+        Ctx::$config->set("ext_password_reset_version", 0);
+
+        (new PasswordReset())->onDatabaseUpgrade(new DatabaseUpgradeEvent());
+
+        self::assertSame(1, Ctx::$config->get("ext_password_reset_version", ConfigType::INT));
+    }
+
     public function testUserWithoutEmailDoesNotCreateToken(): void
     {
         Ctx::$database->execute("UPDATE users SET email = NULL WHERE name = :name", ["name" => self::USER_NAME]);

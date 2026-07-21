@@ -67,47 +67,63 @@ final class UserModeration extends Extension
     {
         $database = Ctx::$database;
         if ($this->get_version() < 1) {
-            $database->create_table("user_moderation_actions", "
-                id SCORE_AIPK,
-                user_id INTEGER NOT NULL,
-                moderator_id INTEGER NOT NULL,
-                action VARCHAR(16) NOT NULL,
-                previous_class VARCHAR(32) NOT NULL,
-                applied_class VARCHAR(32) NOT NULL,
-                reason TEXT NOT NULL,
-                created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                expires TIMESTAMP NULL DEFAULT NULL,
-                revoked BOOLEAN NOT NULL DEFAULT FALSE,
-                revoked_at TIMESTAMP NULL DEFAULT NULL,
-                revoked_by INTEGER NULL,
-                revoke_reason TEXT NULL,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY (moderator_id) REFERENCES users(id) ON DELETE RESTRICT,
-                FOREIGN KEY (revoked_by) REFERENCES users(id) ON DELETE SET NULL
-            ");
-            $database->execute("CREATE INDEX user_moderation_actions__user_id ON user_moderation_actions(user_id)");
-            $database->execute("CREATE INDEX user_moderation_actions__active ON user_moderation_actions(user_id, revoked, expires)");
+            if (!$database->table_exists("user_moderation_actions")) {
+                $database->create_table("user_moderation_actions", "
+                    id SCORE_AIPK,
+                    user_id INTEGER NOT NULL,
+                    moderator_id INTEGER NOT NULL,
+                    action VARCHAR(16) NOT NULL,
+                    previous_class VARCHAR(32) NOT NULL,
+                    applied_class VARCHAR(32) NOT NULL,
+                    reason TEXT NOT NULL,
+                    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    expires TIMESTAMP NULL DEFAULT NULL,
+                    revoked BOOLEAN NOT NULL DEFAULT FALSE,
+                    revoked_at TIMESTAMP NULL DEFAULT NULL,
+                    revoked_by INTEGER NULL,
+                    revoke_reason TEXT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                    FOREIGN KEY (moderator_id) REFERENCES users(id) ON DELETE RESTRICT,
+                    FOREIGN KEY (revoked_by) REFERENCES users(id) ON DELETE SET NULL
+                ");
+            }
+            if (!$database->index_exists("user_moderation_actions", "user_moderation_actions__user_id")) {
+                $database->execute("CREATE INDEX user_moderation_actions__user_id ON user_moderation_actions(user_id)");
+            }
+            if (!$database->index_exists("user_moderation_actions", "user_moderation_actions__active")) {
+                $database->execute("CREATE INDEX user_moderation_actions__active ON user_moderation_actions(user_id, revoked, expires)");
+            }
             $this->set_version(1);
         }
         if ($this->get_version() < 2) {
-            $database->create_table("user_moderation_ip_links", "
-                id SCORE_AIPK,
-                action_id INTEGER NOT NULL,
-                user_id INTEGER NOT NULL,
-                ip SCORE_INET NOT NULL,
-                source VARCHAR(16) NOT NULL,
-                created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (action_id) REFERENCES user_moderation_actions(id) ON DELETE CASCADE,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-                UNIQUE(action_id, ip)
-            ");
-            $database->execute("CREATE INDEX user_moderation_ip_links__ip ON user_moderation_ip_links(ip)");
-            $database->execute("CREATE INDEX user_moderation_ip_links__user_id ON user_moderation_ip_links(user_id)");
+            if (!$database->table_exists("user_moderation_ip_links")) {
+                $database->create_table("user_moderation_ip_links", "
+                    id SCORE_AIPK,
+                    action_id INTEGER NOT NULL,
+                    user_id INTEGER NOT NULL,
+                    ip SCORE_INET NOT NULL,
+                    source VARCHAR(16) NOT NULL,
+                    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (action_id) REFERENCES user_moderation_actions(id) ON DELETE CASCADE,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                    UNIQUE(action_id, ip)
+                ");
+            }
+            if (!$database->index_exists("user_moderation_ip_links", "user_moderation_ip_links__ip")) {
+                $database->execute("CREATE INDEX user_moderation_ip_links__ip ON user_moderation_ip_links(ip)");
+            }
+            if (!$database->index_exists("user_moderation_ip_links", "user_moderation_ip_links__user_id")) {
+                $database->execute("CREATE INDEX user_moderation_ip_links__user_id ON user_moderation_ip_links(user_id)");
+            }
             $this->set_version(2);
         }
         if ($this->get_version() < 3) {
-            $database->execute("ALTER TABLE user_moderation_ip_links ADD COLUMN ip_ban_id INTEGER NULL");
-            $database->execute("ALTER TABLE user_moderation_ip_links ADD COLUMN ip_ban_created BOOLEAN NOT NULL DEFAULT FALSE");
+            if (!$database->column_exists("user_moderation_ip_links", "ip_ban_id")) {
+                $database->execute("ALTER TABLE user_moderation_ip_links ADD COLUMN ip_ban_id INTEGER NULL");
+            }
+            if (!$database->column_exists("user_moderation_ip_links", "ip_ban_created")) {
+                $database->execute("ALTER TABLE user_moderation_ip_links ADD COLUMN ip_ban_created BOOLEAN NOT NULL DEFAULT FALSE");
+            }
             $this->set_version(3);
         }
     }

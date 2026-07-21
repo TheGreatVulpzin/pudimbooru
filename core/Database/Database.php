@@ -343,7 +343,7 @@ class Database
         $_start = ftime();
         $row = $this->_execute($query, $args)->fetch();
         $this->count_time("exists", $_start, $query, $args);
-        if ($row === null) {
+        if ($row === false) {
             return false;
         }
         return true;
@@ -387,6 +387,49 @@ class Database
     public function count_tables(): int
     {
         return count($this->get_table_names());
+    }
+
+    public function table_exists(string $table): bool
+    {
+        return \in_array($table, $this->get_table_names(), true);
+    }
+
+    public function column_exists(string $table, string $column): bool
+    {
+        $args = ["table" => $table, "column" => $column];
+        return match ($this->get_driver_id()) {
+            DatabaseDriverID::MYSQL => $this->exists(
+                "SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = :table AND column_name = :column",
+                $args
+            ),
+            DatabaseDriverID::PGSQL => $this->exists(
+                "SELECT 1 FROM information_schema.columns WHERE table_schema = ANY(current_schemas(FALSE)) AND table_name = :table AND column_name = :column",
+                $args
+            ),
+            DatabaseDriverID::SQLITE => $this->exists(
+                "SELECT 1 FROM pragma_table_info(:table) WHERE name = :column",
+                $args
+            ),
+        };
+    }
+
+    public function index_exists(string $table, string $index): bool
+    {
+        $args = ["table" => $table, "index" => $index];
+        return match ($this->get_driver_id()) {
+            DatabaseDriverID::MYSQL => $this->exists(
+                "SELECT 1 FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = :table AND index_name = :index",
+                $args
+            ),
+            DatabaseDriverID::PGSQL => $this->exists(
+                "SELECT 1 FROM pg_indexes WHERE schemaname = ANY(current_schemas(FALSE)) AND tablename = :table AND indexname = :index",
+                $args
+            ),
+            DatabaseDriverID::SQLITE => $this->exists(
+                "SELECT 1 FROM sqlite_master WHERE type = 'index' AND tbl_name = :table AND name = :index",
+                $args
+            ),
+        };
     }
 
     public function raw_db(): PDO
