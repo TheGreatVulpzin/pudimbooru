@@ -13,6 +13,9 @@ final class SetupConfig extends ConfigGroup
     #[ConfigMeta("Site title", ConfigType::STRING, default: "Shimmie")]
     public const TITLE = "title";
 
+    #[ConfigMeta("HTML language", ConfigType::STRING, default: "pt-BR", advanced: true)]
+    public const HTML_LANGUAGE = "html_language";
+
     #[ConfigMeta("Front page", ConfigType::STRING, default: "post/list")]
     public const FRONT_PAGE = "front_page";
 

@@ -13,7 +13,7 @@ final class FavoritesTest extends ShimmiePHPUnitTestCase
 
         # No favourites
         self::get_page("post/view/$image_id");
-        self::assert_title("Post $image_id: test");
+        self::assert_title("Post #$image_id | Shimmie");
         self::assert_no_text("Favorited By");
 
         # Add a favourite
@@ -21,7 +21,7 @@ final class FavoritesTest extends ShimmiePHPUnitTestCase
 
         # Favourite shown on page
         self::get_page("post/view/$image_id");
-        self::assert_title("Post $image_id: test");
+        self::assert_title("Post #$image_id | Shimmie");
         self::assert_text("Favorited By");
 
         # Favourite shown on index
@@ -37,7 +37,7 @@ final class FavoritesTest extends ShimmiePHPUnitTestCase
 
         # No favourites
         self::get_page("post/view/$image_id");
-        self::assert_title("Post $image_id: test");
+        self::assert_title("Post #$image_id | Shimmie");
         self::assert_no_text("Favorited By");
     }
 }

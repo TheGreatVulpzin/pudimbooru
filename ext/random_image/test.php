@@ -13,10 +13,10 @@ final class RandomImageTest extends ShimmiePHPUnitTestCase
         self::log_out();
 
         $page = self::get_page("random_image/view");
-        self::assertSame("Post $image_id: test", $page->title);
+        self::assertSame("Post #$image_id | Shimmie", $page->title);
 
         $page = self::get_page("random_image/view/test");
-        self::assertSame("Post $image_id: test", $page->title);
+        self::assertSame("Post #$image_id | Shimmie", $page->title);
 
         $page = self::get_page("random_image/download");
         self::assertSame($page->mode, PageMode::FILE);

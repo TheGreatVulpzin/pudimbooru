@@ -585,6 +585,18 @@ final class Pools extends Extension
             ["search" => $search]
         ) / $poolsPerPage);
 
+        $site_name = Ctx::$config->get(SetupConfig::TITLE);
+        $title = $search === "" ? "Coleções" : "Coleções com {$search}";
+        $description = $search === ""
+            ? "Explore as coleções públicas do {$site_name}."
+            : "Veja as coleções encontradas para {$search} no {$site_name}.";
+        send_event(new SocialMetaDataEvent(new SocialMetaPageData(
+            kind: "pool",
+            title: $title,
+            canonical: $search === "" ? make_link("pool/list") : make_link("pool/list/" . url_escape($search)),
+            description: $description,
+        )));
+
         $this->theme->list_pools($pools, $search, $pageNumber + 1, $totalPages);
     }
 
@@ -772,6 +784,20 @@ final class Pools extends Extension
         foreach ($result as $singleResult) {
             $images[] = Post::by_id_ex((int) $singleResult["image_id"]);
         }
+
+        $post_count = $pool->posts === 1 ? "1 post na coleção." : "{$pool->posts} posts na coleção.";
+        $description = trim($pool->description);
+        $description = $description === "" ? $post_count : "$description $post_count";
+
+        send_event(new SocialMetaDataEvent(new SocialMetaPageData(
+            kind: "pool",
+            title: "Coleção: {$pool->title}",
+            canonical: make_link("pool/view/{$pool->id}"),
+            description: $description,
+            representative_post: $pool->public ? ($images[0] ?? null) : null,
+            published_at: $pool->date,
+            indexable: $pool->public,
+        )));
 
         $this->theme->view_pool($pool, $images, $pageNumber + 1, $totalPages);
     }

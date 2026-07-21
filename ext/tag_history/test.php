@@ -17,7 +17,7 @@ final class TagHistoryTest extends ShimmiePHPUnitTestCase
 
         // Check post
         self::get_page("post/view/$image_id");
-        self::assert_title("Post $image_id: old_tag");
+        self::assert_title("Post #$image_id | Shimmie");
 
         // Check image history
         self::get_page("tag_history/$image_id");
@@ -43,7 +43,7 @@ final class TagHistoryTest extends ShimmiePHPUnitTestCase
 
         // Check post
         self::get_page("post/view/$image_id");
-        self::assert_title("Post $image_id: new_tag");
+        self::assert_title("Post #$image_id | Shimmie");
 
         // Check image history
         self::get_page("tag_history/$image_id");
@@ -78,7 +78,7 @@ final class TagHistoryTest extends ShimmiePHPUnitTestCase
 
         // Check post
         self::get_page("post/view/$image_id");
-        self::assert_title("Post $image_id: old_tag");
+        self::assert_title("Post #$image_id | Shimmie");
 
         // Check image history
         self::get_page("tag_history/$image_id");

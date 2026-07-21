@@ -77,6 +77,24 @@ final class Index extends Extension
 
             $count_images = count($images);
 
+            if ($count_search_terms > 0) {
+                $query = SearchTerm::implode($search_terms);
+                send_event(new SocialMetaDataEvent(new SocialMetaPageData(
+                    kind: "search",
+                    title: "Posts com {$query}",
+                    canonical: search_link($search_terms),
+                    tags: $search_terms,
+                    indexable: $page_number <= 3,
+                )));
+            } else {
+                send_event(new SocialMetaDataEvent(new SocialMetaPageData(
+                    kind: "page",
+                    title: Ctx::$config->get(SetupConfig::TITLE),
+                    canonical: search_link(),
+                    description: (string)Ctx::$config->get(SiteDescriptionConfig::DESCRIPTION),
+                )));
+            }
+
             if ($count_search_terms === 0 && $count_images === 0 && $page_number === 1) {
                 $this->theme->display_intro();
                 send_event(new PostListBuildingEvent($search_terms));

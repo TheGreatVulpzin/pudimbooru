@@ -14,12 +14,12 @@ final class PostTagsTest extends ShimmiePHPUnitTestCase
 
         // Original
         self::get_page("post/view/$image_id");
-        self::assert_title("Post $image_id: pbx");
+        self::assert_title("Post #$image_id | Shimmie");
 
         // Modified
         send_event(new TagSetEvent($image, ["new"]));
         self::get_page("post/view/$image_id");
-        self::assert_title("Post $image_id: new");
+        self::assert_title("Post #$image_id | Shimmie");
     }
 
     public function testInvalidChange(): void

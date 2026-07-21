@@ -73,6 +73,22 @@ final class HelpPages extends Extension
             foreach ($hpbe->get_parts() as $block) {
                 $page->add_block($block);
             }
+            if (SocialMetaInfo::is_enabled()) {
+                $social_title = PudimbooruLocale::translate($title);
+                $description_parts = [];
+                foreach ($hpbe->get_parts() as $block) {
+                    if ($block->header !== null && trim($block->header) !== "") {
+                        $description_parts[] = $block->header;
+                    }
+                    $description_parts[] = SocialMetaText::from_html((string)$block->body);
+                }
+                send_event(new SocialMetaDataEvent(new SocialMetaPageData(
+                    kind: "help",
+                    title: "Ajuda: {$social_title}",
+                    canonical: make_link("help/{$name}"),
+                    description: implode(" ", $description_parts),
+                )));
+            }
         } elseif ($event->page_matches("help")) {
             $page->set_redirect(make_link("help/search"));
         }

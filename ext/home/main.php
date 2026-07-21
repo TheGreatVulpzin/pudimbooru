@@ -15,6 +15,13 @@ final class Home extends Extension
     public function onPageRequest(PageRequestEvent $event): void
     {
         if ($event->page_matches("home")) {
+            send_event(new SocialMetaDataEvent(new SocialMetaPageData(
+                kind: "home",
+                title: Ctx::$config->get(SetupConfig::TITLE),
+                canonical: make_link('home'),
+                description: (string)Ctx::$config->get(SiteDescriptionConfig::DESCRIPTION),
+            )));
+
             $this->theme->display_page(
                 Ctx::$config->get(SetupConfig::TITLE),
                 $this->get_body()

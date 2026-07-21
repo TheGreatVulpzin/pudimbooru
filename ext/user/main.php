@@ -396,6 +396,17 @@ final class UserPage extends Extension
             if ($display_user->id === Ctx::$config->get(UserAccountsConfig::ANON_ID)) {
                 throw new UserNotFound("usuário não encontrado");
             }
+            if (SocialMetaInfo::is_enabled()) {
+                $site_name = trim((string)Ctx::$config->get(SocialMetaConfig::SITE_NAME));
+                $site_name = $site_name ?: Ctx::$config->get(SetupConfig::TITLE);
+                send_event(new SocialMetaDataEvent(new SocialMetaPageData(
+                    kind: "profile",
+                    title: "Perfil: {$display_user->name}",
+                    canonical: make_link("user/" . url_escape($display_user->name)),
+                    description: "Veja o perfil de {$display_user->name} no {$site_name}.",
+                    published_at: $display_user->join_date,
+                )));
+            }
             $e = send_event(new UserPageBuildingEvent($display_user));
             $this->display_stats($e);
         } elseif ($event->page_matches("user")) {

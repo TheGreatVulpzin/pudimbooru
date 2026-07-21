@@ -18,7 +18,7 @@ final class ViewPostTest extends ShimmiePHPUnitTestCase
         $image_id_1 = $this->create_post("tests/pbx_screenshot.jpg", "test");
 
         self::get_page("post/view/$image_id_1");
-        self::assert_title("Post $image_id_1: test");
+        self::assert_title("Post #$image_id_1 | Shimmie");
     }
 
     public function testViewInfo(): void
