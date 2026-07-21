@@ -58,7 +58,7 @@ final class SocialMetaConfig extends ConfigGroup
     ])]
     public const POST_IMAGE_MODE = "social_meta_post_image_mode";
 
-    #[ConfigMeta("Anexar áudio/vídeo direto no Open Graph", ConfigType::BOOL, default: false, advanced: true)]
+    #[ConfigMeta("Anexar áudio/vídeo direto no Open Graph", ConfigType::BOOL, default: true, advanced: true)]
     public const DIRECT_MEDIA = "social_meta_direct_media";
 
     #[ConfigMeta("Imagem padrão das outras páginas", ConfigType::STRING, help: "URL absoluta ou caminho do site. Vazio usa apple-touch-icon.png.")]

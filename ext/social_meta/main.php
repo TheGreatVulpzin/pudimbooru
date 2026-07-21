@@ -62,9 +62,6 @@ final class SocialMeta extends Extension
             : ($this->page_data ?? $this->fallback_data());
         $this->render_document($data);
 
-        if ($this->displayed_post !== null && Ctx::$config->get(SocialMetaConfig::DIRECT_MEDIA)) {
-            $this->add_direct_media($this->displayed_post);
-        }
     }
 
     private function post_data(Post $post): SocialMetaPageData
@@ -172,6 +169,9 @@ final class SocialMeta extends Extension
         }
 
         [$image_url, $image_type, $image_width, $image_height] = $this->image($data->representative_post);
+        [$media_url, $media_type, $media_width, $media_height] = $this->direct_media(
+            $data->representative_post,
+        );
         $image_alt = $data->kind === "post"
             ? SocialMetaText::truncate($description, 200)
             : $this->default_image_alt();
@@ -187,6 +187,10 @@ final class SocialMeta extends Extension
             image_type: $image_type,
             image_width: $image_width,
             image_height: $image_height,
+            media_url: $media_url,
+            media_type: $media_type,
+            media_width: $media_width,
+            media_height: $media_height,
             published_at: $data->published_at,
             indexable: $data->indexable,
         );
@@ -234,19 +238,22 @@ final class SocialMeta extends Extension
         ];
     }
 
-    private function add_direct_media(Post $post): void
+    /** @return array{?Url, ?string, ?int, ?int} */
+    private function direct_media(?Post $post): array
     {
-        $mime = $post->get_mime()->base;
-        $url = (string)$post->get_media_link()->asAbsolute();
-        if (str_starts_with($mime, "video/")) {
-            $this->property("og:video", $url);
-            $this->property("og:video:type", $mime);
-            $this->property("og:video:width", (string)$post->width);
-            $this->property("og:video:height", (string)$post->height);
-        } elseif (str_starts_with($mime, "audio/")) {
-            $this->property("og:audio", $url);
-            $this->property("og:audio:type", $mime);
+        if ($post === null || !Ctx::$config->get(SocialMetaConfig::DIRECT_MEDIA)) {
+            return [null, null, null, null];
         }
+        $mime = $post->get_mime()->base;
+        if (!str_starts_with($mime, "video/") && !str_starts_with($mime, "audio/")) {
+            return [null, null, null, null];
+        }
+        return [
+            $post->get_media_link()->asAbsolute(),
+            $mime,
+            str_starts_with($mime, "video/") ? $post->width : null,
+            str_starts_with($mime, "video/") ? $post->height : null,
+        ];
     }
 
     private function serve_oembed(PageRequestEvent $event): void
@@ -425,11 +432,4 @@ final class SocialMeta extends Extension
         ]), 30);
     }
 
-    private function property(string $property, string $content): void
-    {
-        Ctx::$page->add_html_header(\MicroHTML\META([
-            "property" => $property,
-            "content" => $content,
-        ]), 30);
-    }
 }

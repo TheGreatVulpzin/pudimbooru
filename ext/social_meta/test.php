@@ -77,6 +77,36 @@ final class SocialMetaTest extends ShimmiePHPUnitTestCase
         self::assertStringContainsString("<meta name='theme-color' content='#5865F2' />", $headers);
     }
 
+    public function testVideoPostIncludesSecureDirectMedia(): void
+    {
+        self::log_in_as_user();
+        $post_id = $this->create_post("tests/pbx_screenshot.jpg", "video teste");
+        Ctx::$database->execute(
+            "UPDATE images SET mime=:mime, ext=:ext WHERE id=:id",
+            ["mime" => MimeType::MP4_VIDEO, "ext" => "mp4", "id" => $post_id],
+        );
+        $previous_https = $_SERVER["HTTPS"] ?? null;
+        $_SERVER["HTTPS"] = "on";
+        try {
+            self::get_page("post/view/$post_id");
+            $headers = (string)emptyHTML(...Ctx::$page->get_all_html_headers());
+        } finally {
+            if ($previous_https === null) {
+                unset($_SERVER["HTTPS"]);
+            } else {
+                $_SERVER["HTTPS"] = $previous_https;
+            }
+        }
+
+        self::assertStringContainsString("<meta property='og:type' content='video.other' />", $headers);
+        self::assertStringContainsString("<meta property='og:video' content='https://", $headers);
+        self::assertStringContainsString("<meta property='og:video:secure_url' content='https://", $headers);
+        self::assertStringContainsString("<meta property='og:video:type' content='video/mp4' />", $headers);
+        self::assertStringContainsString("<meta property='og:video:width' content='640' />", $headers);
+        self::assertStringContainsString("<meta property='og:video:height' content='480' />", $headers);
+        self::assertSame(1, substr_count($headers, "property='og:type'"));
+    }
+
     public function testCustomTemplates(): void
     {
         self::log_in_as_user();

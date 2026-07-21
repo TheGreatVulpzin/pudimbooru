@@ -145,7 +145,7 @@ final class SocialMetaRenderer
         $this->name("theme-color", $this->theme_color);
         $this->name("description", $document->description);
         $this->property("og:title", $document->title);
-        $this->property("og:type", $document->published_at === null ? "website" : "article");
+        $this->property("og:type", $this->open_graph_type($document));
         $this->property("og:url", (string)$canonical);
         $this->property("og:image", (string)$image);
         if (str_starts_with((string)$image, "https://")) {
@@ -161,6 +161,7 @@ final class SocialMetaRenderer
             $this->property("og:image:height", (string)$document->image_height);
         }
         $this->property("og:image:alt", $document->image_alt);
+        $this->direct_media($document);
         $this->property("og:description", $document->description);
         $this->property("og:site_name", $this->site_name);
         $this->property("og:locale", $this->locale);
@@ -215,6 +216,10 @@ final class SocialMetaRenderer
         if ($document->tags !== []) {
             $data["keywords"] = $document->tags;
         }
+        if ($document->media_url !== null && $document->media_type !== null) {
+            $data["contentUrl"] = (string)$document->media_url;
+            $data["encodingFormat"] = $document->media_type;
+        }
         $json = json_encode(
             $data,
             JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP,
@@ -232,6 +237,34 @@ final class SocialMetaRenderer
             "profile" => "ProfilePage",
             default => "WebPage",
         };
+    }
+
+    private function open_graph_type(SocialMetaDocument $document): string
+    {
+        if ($document->media_type !== null && str_starts_with($document->media_type, "video/")) {
+            return "video.other";
+        }
+        return $document->published_at === null ? "website" : "article";
+    }
+
+    private function direct_media(SocialMetaDocument $document): void
+    {
+        if ($document->media_url === null || $document->media_type === null) {
+            return;
+        }
+        $prefix = str_starts_with($document->media_type, "video/") ? "og:video" : "og:audio";
+        $url = (string)$document->media_url;
+        $this->property($prefix, $url);
+        if (str_starts_with($url, "https://")) {
+            $this->property("{$prefix}:secure_url", $url);
+        }
+        $this->property("{$prefix}:type", $document->media_type);
+        if ($document->media_width !== null && $document->media_width > 0) {
+            $this->property("{$prefix}:width", (string)$document->media_width);
+        }
+        if ($document->media_height !== null && $document->media_height > 0) {
+            $this->property("{$prefix}:height", (string)$document->media_height);
+        }
     }
 
     private function iso_date(string $date): string

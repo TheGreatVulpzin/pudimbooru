@@ -44,6 +44,10 @@ final class SocialMetaDocument
         public ?string $image_type = null,
         public ?int $image_width = null,
         public ?int $image_height = null,
+        public ?Url $media_url = null,
+        public ?string $media_type = null,
+        public ?int $media_width = null,
+        public ?int $media_height = null,
         public ?string $published_at = null,
         public bool $indexable = true,
     ) {
