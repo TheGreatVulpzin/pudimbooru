@@ -26,20 +26,28 @@ final class UserNotifications extends Extension
     {
         $database = Ctx::$database;
         if ($this->get_version() < 1) {
-            $database->execute("ALTER TABLE users ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE");
+            if (!$database->column_exists("users", "email_verified")) {
+                $database->execute("ALTER TABLE users ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE");
+            }
             $database->execute("UPDATE users SET email_verified = :verified WHERE email IS NOT NULL AND email <> ''", ["verified" => true]);
-            $database->create_table("user_email_verification_tokens", "
-                id SCORE_AIPK,
-                user_id INTEGER NOT NULL,
-                email VARCHAR(128) NOT NULL,
-                token_hash VARCHAR(128) NOT NULL UNIQUE,
-                created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                expires TIMESTAMP NOT NULL,
-                used BOOLEAN NOT NULL DEFAULT FALSE,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            ");
-            $database->execute("CREATE INDEX user_email_verification_tokens__user_id ON user_email_verification_tokens(user_id)");
-            $database->execute("CREATE INDEX user_email_verification_tokens__expires ON user_email_verification_tokens(expires)");
+            if (!$database->table_exists("user_email_verification_tokens")) {
+                $database->create_table("user_email_verification_tokens", "
+                    id SCORE_AIPK,
+                    user_id INTEGER NOT NULL,
+                    email VARCHAR(128) NOT NULL,
+                    token_hash VARCHAR(128) NOT NULL UNIQUE,
+                    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    expires TIMESTAMP NOT NULL,
+                    used BOOLEAN NOT NULL DEFAULT FALSE,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                ");
+            }
+            if (!$database->index_exists("user_email_verification_tokens", "user_email_verification_tokens__user_id")) {
+                $database->execute("CREATE INDEX user_email_verification_tokens__user_id ON user_email_verification_tokens(user_id)");
+            }
+            if (!$database->index_exists("user_email_verification_tokens", "user_email_verification_tokens__expires")) {
+                $database->execute("CREATE INDEX user_email_verification_tokens__expires ON user_email_verification_tokens(expires)");
+            }
             $this->set_version(1);
         }
         $this->deleteExpiredTokens();

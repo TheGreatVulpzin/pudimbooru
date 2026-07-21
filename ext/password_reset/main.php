@@ -16,18 +16,24 @@ final class PasswordReset extends Extension
     {
         $database = Ctx::$database;
         if ($this->get_version() < 1) {
-            $database->create_table("password_reset_tokens", "
-                id SCORE_AIPK,
-                user_id INTEGER NOT NULL,
-                token_hash VARCHAR(128) NOT NULL UNIQUE,
-                created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                expires TIMESTAMP NOT NULL,
-                used BOOLEAN NOT NULL DEFAULT FALSE,
-                request_ip VARCHAR(45) NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            ");
-            $database->execute("CREATE INDEX password_reset_tokens__user_id ON password_reset_tokens(user_id)");
-            $database->execute("CREATE INDEX password_reset_tokens__expires ON password_reset_tokens(expires)");
+            if (!$database->table_exists("password_reset_tokens")) {
+                $database->create_table("password_reset_tokens", "
+                    id SCORE_AIPK,
+                    user_id INTEGER NOT NULL,
+                    token_hash VARCHAR(128) NOT NULL UNIQUE,
+                    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    expires TIMESTAMP NOT NULL,
+                    used BOOLEAN NOT NULL DEFAULT FALSE,
+                    request_ip VARCHAR(45) NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                ");
+            }
+            if (!$database->index_exists("password_reset_tokens", "password_reset_tokens__user_id")) {
+                $database->execute("CREATE INDEX password_reset_tokens__user_id ON password_reset_tokens(user_id)");
+            }
+            if (!$database->index_exists("password_reset_tokens", "password_reset_tokens__expires")) {
+                $database->execute("CREATE INDEX password_reset_tokens__expires ON password_reset_tokens(expires)");
+            }
             $this->set_version(1);
         }
         $this->deleteExpiredTokens();
