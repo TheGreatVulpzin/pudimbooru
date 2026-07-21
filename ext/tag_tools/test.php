@@ -15,21 +15,21 @@ final class TagToolsTest extends ShimmiePHPUnitTestCase
 
         // Validate problem
         $page = self::get_page("post/view/$image_id_1");
-        self::assertSame("Post $image_id_1: TeStCase$ts", $page->title);
+        self::assertSame("Post #$image_id_1 | Shimmie", $page->title);
 
         // Fix
         send_event(new AdminActionEvent('lowercase_all_tags', new QueryArray([])));
 
         // Validate fix
         self::get_page("post/view/$image_id_1");
-        self::assert_title("Post $image_id_1: testcase$ts");
+        self::assert_title("Post #$image_id_1 | Shimmie");
 
         // Change
         send_event(new AdminActionEvent('set_tag_case', new QueryArray(["tag" => "TestCase$ts"])));
 
         // Validate change
         self::get_page("post/view/$image_id_1");
-        self::assert_title("Post $image_id_1: TestCase$ts");
+        self::assert_title("Post #$image_id_1 | Shimmie");
     }
 
     # FIXME: make sure the admin tools actually work

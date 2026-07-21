@@ -41,7 +41,7 @@ final class AliasEditorTest extends ShimmiePHPUnitTestCase
 
         $image_id = $this->create_post("tests/pbx_screenshot.jpg", "test1");
         self::get_page("post/view/$image_id"); # check that the tag has been replaced
-        self::assert_title("Post $image_id: test2");
+        self::assert_title("Post #$image_id | Shimmie");
         self::get_page("post/list/test1/1"); # searching for an alias should find the master tag
         self::assert_response(302);
         self::get_page("post/list/test2/1"); # check that searching for the main tag still works

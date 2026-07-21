@@ -13,6 +13,10 @@ if (preg_match('/_(images|thumbs)\/([0-9a-f]{32})\//', $_SERVER["REQUEST_URI"], 
     }
 
     $size = filesize($path);
+    if ($size === false) {
+        http_response_code(500);
+        return;
+    }
     $start = 0;
     $end = $size - 1;
     $status = 200;
@@ -46,10 +50,17 @@ if (preg_match('/_(images|thumbs)\/([0-9a-f]{32})\//', $_SERVER["REQUEST_URI"], 
     }
     if ($_SERVER["REQUEST_METHOD"] !== "HEAD") {
         $file = fopen($path, "rb");
+        if ($file === false) {
+            http_response_code(500);
+            return;
+        }
         fseek($file, $start);
         $remaining = $end - $start + 1;
         while ($remaining > 0 && !feof($file)) {
             $chunk = fread($file, min(8192, $remaining));
+            if ($chunk === false) {
+                break;
+            }
             echo $chunk;
             $remaining -= strlen($chunk);
         }
