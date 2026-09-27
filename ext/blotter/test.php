@@ -36,4 +36,17 @@ final class BlotterTest extends ShimmiePHPUnitTestCase
         //$this->click("Remove");
         //self::assert_no_text("blotter testing");
     }
+
+    public function testBBCodeAndLinks(): void
+    {
+        self::log_in_as_admin();
+
+        self::post_page("blotter/add", [
+            "entry_text" => "[b]bold[/b] [url]https://example.com[/url]",
+        ]);
+
+        self::get_page("blotter/list");
+        self::assert_text("<b>bold</b>");
+        self::assert_text('<a href="https://example.com">https://example.com</a>');
+    }
 }

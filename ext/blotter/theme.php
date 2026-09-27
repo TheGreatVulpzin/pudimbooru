@@ -52,7 +52,16 @@ class BlotterTheme extends Themelet
                 TFOOT(
                     TR(SHM_SIMPLE_FORM(
                         make_link("blotter/add"),
-                        TD(["colspan" => 2], TEXTAREA(["name" => "entry_text", "rows" => 2])),
+                        TD(
+                            ["colspan" => 2],
+                            TEXTAREA(["name" => "entry_text", "rows" => 2]),
+                            BR(),
+                            SPAN(
+                                ["class" => "blotter-format-hint"],
+                                PudimbooruLocale::translate("Supports BBCode and links.") . " ",
+                                A(["href" => make_link("help/formatting")], "(" . PudimbooruLocale::translate("formatting help") . ")")
+                            )
+                        ),
                         TD(INPUT(["type" => "checkbox", "name" => "important"])),
                         TD(SHM_SUBMIT(PudimbooruLocale::translate("Add")))
                     ))
@@ -76,8 +85,7 @@ class BlotterTheme extends Themelet
         $html = P();
         foreach ($entries as $entry) {
             $clean_date = date("Y/m/d", \Safe\strtotime($entry['entry_date']));
-            $entry_text = $entry['entry_text'];
-            $msg = "{$clean_date} - {$entry_text}";
+            $msg = emptyHTML("{$clean_date} - ", format_text($entry['entry_text']));
             if ($entry['important']) {
                 $msg = SPAN(["style" => "color: $i_color;"], $msg);
             }
@@ -99,8 +107,7 @@ class BlotterTheme extends Themelet
         $entries_list = UL();
         foreach ($entries as $entry) {
             $clean_date = date("m/d/y", \Safe\strtotime($entry['entry_date']));
-            $entry_text = $entry['entry_text'];
-            $text = "{$clean_date} - {$entry_text}";
+            $text = emptyHTML("{$clean_date} - ", format_text($entry['entry_text']));
             if ($entry['important']) {
                 $text = SPAN(["style" => "color: $i_color"], $text);
             }
