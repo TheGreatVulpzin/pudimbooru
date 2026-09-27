@@ -179,6 +179,8 @@ final class PudimbooruLocale
         "Yes" => "Sim",
         "No" => "Não",
         "Blotter Entries" => "Entradas do Blotter",
+        "Supports BBCode and links." => "Suporta BBCode e links.",
+        "formatting help" => "ajuda de formatação",
         "No blotter entries yet." => "Ainda não há avisos.",
         "Empty." => "Vazio.",
         "Blotter updated: %s" => "Avisos atualizados: %s",
